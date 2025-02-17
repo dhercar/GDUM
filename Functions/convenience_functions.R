@@ -1,5 +1,13 @@
 # This script contains convenience functions used in other scripts (including other functions)
 
+# Numerator and denominator of bray curtis distance
+bray1 <- function(x,y){
+  num = sum(abs(x - y))
+  den = sum(x,y)
+  return(c(num=num, den=den))
+}
+
+# Logit
 logit <- function(x){
   log(x/(1-x))
 }

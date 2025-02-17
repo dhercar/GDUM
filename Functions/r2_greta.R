@@ -1,7 +1,8 @@
 # bayesian r2
+
 r2_greta <- function(observed, 
                      estimated, 
-                     latent = FALSE,
+                     latent = FALSE, # Set to TRUE if r2 is computed on u. If set to TRUE, 'observed' should corresponds to the estimated response and 'estimated' to the estimated response without the site-level re 
                      mean = 'mu',
                      trials = NULL,
                      summary = FALSE,

@@ -1,4 +1,4 @@
-# Function to simulate community data 
+# Function used to simulate community data 
 
 sim_com_data <- function(n_sp = 50,              # number of species in species pool
                          isolation = NULL,       # vector of isolation values (w) for each site
