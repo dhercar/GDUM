@@ -16,37 +16,40 @@ predict_gdum <- function(fit,
     }
   } 
   
-  if(is.null(D_new)){
+  if (is.null(D_new)) {
     if (!is.null(X_new)) {
-      D_new <- matrix(1:(dim(X_new)[1]*2), ncol = 2)
-      if (re == FALSE) {
-        fit$greta_arrays$e_s <- zeros(prod(dim(D_new)))
-      } else {
-        fit$greta_arrays$e_s <- normal(0, fit$greta_arrays$SD_s, prod(dim(D_new)))
-      }
+      D_new <- matrix(1:(dim(X_new)[1] * 2), ncol = 2)
     } else if (!is.null(W_new)) {
-      D_new <- t(combn(1:dim(W_new)[1],2))
-      if (re == FALSE) {
-      fit$greta_arrays$e_s <- normal(0, fit$greta_arrays$SD_s, dim(W_new)[1])
-      } else {
-      fit$greta_arrays$e_s <- zeros(dim(W_new)[1])
+      D_new <- t(combn(1:dim(W_new)[1], 2))
     }
-    }
-    }
+  }
+  
+  if (is.na(re))  {
+    fit$greta_arrays$e_s <-
+      normal(0, fit$greta_arrays$SD_s, length(unique(c(D_new[, 1], D_new[, 2]))))
+  } else if (re == FALSE) {
+    fit$greta_arrays$e_s <-
+      zeros(length(unique(c(D_new[, 1], D_new[, 2]))))
+    
+  }
   
 
   # Ensure column order matches the original model
   if (!is.null(X_new)) {
     X_mat <- model.matrix(eval(fit$diss_formula), data = X_new)
-    X_mat <- matrix(if ("(Intercept)" %in% colnames(X_mat)) X_mat[, -1] else X_mat)
-  }else{
+    if ("(Intercept)" %in% colnames(X_mat)) {
+      X_mat <- X_mat[, -1, drop = FALSE]
+    }
+  } else {
     X_mat = NULL
   }
   
   if (!is.null(W_new)) {
     W_mat <- model.matrix(eval(fit$site_formula), data = W_new)
-    W_mat <- matrix(if ("(Intercept)" %in% colnames(W_mat)) W_mat[, -1] else W_mat)
-  }else{
+    if("(Intercept)" %in% colnames(W_mat)){
+      W_mat <- W_mat[,-1, drop = FALSE]
+    }
+  } else{
     W_mat = NULL
   }
   
@@ -62,7 +65,6 @@ predict_gdum <- function(fit,
   if(response == 'dissimilarity'){
   new_mu <- fit$ilink(new_v_eta[D_new[,1]] + new_v_eta[D_new[,2]] + new_h_eta + fit$greta_arrays$alpha)
   draws_mu <- t(apply(data.frame(calculate(new_mu, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
-  draws_mu <- cbind(draws_mu, X_new)
   return(draws_mu)
   }
   
@@ -73,7 +75,6 @@ predict_gdum <- function(fit,
   D_s_s <- greta::rowSums(D_s_m) / nrow(D_s_m)
   u_eta <- fit$greta_arrays$alpha/2 + D_s_s + new_v_eta
   draws_u <- t(apply(data.frame(calculate(u_eta, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
-  draws_u <- cbind(draws_u, W_new)
   return(draws_u)
   }
   

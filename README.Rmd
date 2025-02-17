@@ -7,7 +7,14 @@ output: github_document
 
 Here we show how to fit and inspect Generalised Dissimilarity Uniqueness Models (DGUM) using greta. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](link). 
 
-There are the necessary packages: 
+```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
+# Load functions
+dir <- './functions/'
+files.sources = list.files(dir)
+sapply(paste0(dir,files.sources), source)
+```
+
+Some other necessary packages: 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 library(greta)
 library(coda)
@@ -16,20 +23,11 @@ library(ggplot2)
 library(tidyverse)
 ```
 
-Note that `greta` requires some additional dependencies. Please check [greta-stats.org/](https://greta-stats.org/) for more information. 
-
-We also source some convenience functions to help prepare the data and building the model.  
-
-```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
-# Load functions
-dir <- './functions/'
-files.sources = list.files(dir)
-sapply(paste0(dir,files.sources), source)
-```
+Note that the package `greta` requires some additional dependencies. Please check [greta-stats.org/](https://greta-stats.org/) for more information. 
 
 ## Case-study: Fish from the doubs river
 
-We will use the [doubs dataset](https://www.davidzeleny.net/anadat-r/doku.php/en:data:doubs) as an example. The dataset contains abundances of fish species along the doubs river. 
+We will use the [doubs dataset](https://www.davidzeleny.net/anadat-r/doku.php/en:data:doubs) as an example. The dataset contains abundances of fish species along the Doubs river. 
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 # Load datasets
@@ -59,9 +57,10 @@ We provide two functions to help formatting the data: `make_x_df()` and `make_y_
 
 ```{r}
 X <- make_x_df(env = doubs.env, 
-               scale = FALSE, 
-               method = 'euclidean',
-               collapse = FALSE) 
+               scale = FALSE, # Whether variables should be scaled prior to computing distances
+               method = 'euclidean', # Method passed to `dist`
+               collapse = FALSE)  # Whether environmental variables should be collapsed into a single environmental distance
+
 kableExtra::kable(head(X))
 ```
 
@@ -165,8 +164,8 @@ m_beta <- fit_gdum(Y = Y_bray$diss2,
          site_formula = ~ dbo,
          warmup = 2000,
          n_samples = 4000,
-         Lmin = 10,
-         Lmax = 15)
+         Lmin = 15,
+         Lmax = 20)
 ```
 
 ```{r}
@@ -215,7 +214,7 @@ m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
          family = 'betabinomial',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ dbo,
+         site_formula = ~ s_dbo,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 10,
@@ -228,6 +227,7 @@ summary(m_bbin$draws)[[1]][1:5,]
 ```
 
 
+## Predictions and partial effects
 ### Assessing compositional uniqueness 
 
 Community uniqueness (u) values, [equivalent to $SS_i$ in the computation of LCBD](https://doi.org/10.1111/ele.12141), can be obtained from the fitted model using the `predict_gdum()` function.
@@ -238,25 +238,162 @@ u_pred <- predict_gdum(m_gaus, response = 'uniqueness')
 
 We can compare those with the ones obtained with `adespatial::`
 ```{r}
-u_pred$lcbd <- adespatial::LCBD.comp(vegan::vegdist(log1p(doubs.spe)))$LCBD
+u_pred <- data.frame(u_pred, lcbd = adespatial::LCBD.comp(vegan::vegdist(log1p(doubs.spe)))$LCBD)
 ```
 
 ```{r}
-ggplot(u_pred, aes(x = lcbd, y = `50%`/sum(`50%`))) +
+ggplot(u_pred, aes(x = lcbd, y = `X50.`/sum(`X50.`))) +
   theme_bw() +
   theme(aspect.ratio = 1) +
   coord_equal() + 
   geom_abline(lty = 5) +
   ylab('u/sum(u) (GDUM)') +
   xlab('LCBD (adespatial)') +
-  geom_linerange(aes(ymax = `97.5%`/sum(`50%`), ymin = `2.5%`/sum(`50%`)), linewidth = 1, col = 'lightblue') +
-  geom_linerange(aes(ymax = `75%`/sum(`50%`), ymin = `25%`/sum(`50%`)), linewidth = 2, col = 'steelblue4') + 
+  geom_linerange(aes(ymax = `X97.5.`/sum(`X50.`), ymin = `X2.5.`/sum(`X50.`)), linewidth = 1, col = 'lightblue') +
+  geom_linerange(aes(ymax = `X75.`/sum(`X50.`), ymin = `X25.`/sum(`X50.`)), linewidth = 2, col = 'steelblue4') + 
   geom_point(shape = 21, fill = 'white', size = 2)
 
 ```
 
+And map the values in space
 
-## Predictions and partial effects
+```{r}
+ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
+  theme_void() +
+  coord_equal() +
+  geom_path() + 
+  geom_point(shape = 21, aes(size = X50.), fill = 'steelblue') +
+  scale_size_continuous('u_i', range = c(1,7))
+```
+
+Similarly, we can obtain the expected $u$ values when the site-level random effect is set to 0
+
+```{r}
+u_pred <- predict_gdum(m_gaus, response = 'uniqueness', re = FALSE)
+u_pred <- data.frame(u_pred)
+ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
+  theme_void() +
+  coord_equal() +
+  geom_path() + 
+  geom_point(shape = 21, aes(size = X50.), fill = 'darkorange') +
+  scale_size_continuous('u_i', range = c(1,7))
+
+```
+
+Or when controlling for the environmental gradient (`s_dist_nit`) 
+
+```{r}
+u_pred <- predict_gdum(m_gaus, response = 'uniqueness', D_new = D, W_new = doubs.env, re = TRUE)
+u_pred <- data.frame(u_pred)
+ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
+  theme_void() +
+  coord_equal() +
+  geom_path() + 
+  geom_point(shape = 21, aes(size = X50.), fill = 'darkorange') +
+  scale_size_continuous('u_i', range = c(1,7))
+
+```
+
+
+### Predict with new data
+
+It is often useful look to use predictions to visualize the effect of individual predictors. This can also be achieved with `predict_gdum()`.
+
+```{r}
+# generate new data
+n = 50
+D_new <- t(combn(n, 2)) # n pairwise combinations
+X_new <- data.frame(s_dist_nit = seq(min(X$s_dist_nit), 
+                                     max(X$s_dist_nit), 
+                                     length.out = nrow(D_new))) # Simulate pairwise predictors
+W_new <- data.frame(s_dbo = rep(mean(doubs.env$s_dbo), n)) # Simulate site-level predictor
+
+# Make predictions
+pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
+                     re =FALSE, samples = 5000)
+ggplot(cbind(pred, X_new), aes(x = s_dist_nit,y = `50%`)) +
+  theme_bw() + 
+  ylab('expected dissimilarity') + 
+  geom_ribbon(aes(ymin = `2.5%`,max = `97.5%`), fill = 'lightblue', alpha = 0.5) + 
+  geom_ribbon(aes(ymin = `25%`,max = `75%`), fill = 'steelblue4', alpha = 0.5) + 
+  geom_line(colour = 'white', linewidth = 1.5) +
+  geom_line()
+```
+
+
+```{r}
+# generate new data
+n = 50
+D_new <- t(combn(n, 2)) # n pairwise combinations
+X_new <- data.frame(s_dist_nit = rep(mean(doubs.env$s_dbo),
+                                     length.out = nrow(D_new))) # Simulate pairwise predictors
+W_new <- data.frame(s_dbo = seq(min(doubs.env$s_dbo),max(doubs.env$s_dbo), length.out = n)) # Simulate site-level predictor
+
+# Make predictions
+pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
+                     re = FALSE, samples = 5000, response = 'uniqueness')
+
+ggplot(cbind(pred, W_new), aes(x = s_dbo,y = `50%`)) +
+  theme_bw() + 
+  ylab('expected dissimilarity') + 
+  geom_ribbon(aes(ymin = `2.5%`,max = `97.5%`), fill = 'lightblue', alpha = 0.5) + 
+  geom_ribbon(aes(ymin = `25%`,max = `75%`), fill = 'steelblue4', alpha = 0.5) + 
+  geom_line(colour = 'white', linewidth = 1.5) +
+  geom_line()
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

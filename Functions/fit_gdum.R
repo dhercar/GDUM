@@ -40,6 +40,7 @@ fit_gdum <- function(Y, # Response (dissimilarity)
   
   if(!is.null(W)){
     W_mat <- model.matrix(site_formula, data = data.frame(W))
+    
     if("(Intercept)" %in% colnames(W_mat)){
       W_mat <- W_mat[,-1, drop = FALSE]
     }
