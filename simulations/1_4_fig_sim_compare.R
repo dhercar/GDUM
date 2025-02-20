@@ -12,16 +12,20 @@ theme_update(panel.grid = element_blank())
 set.seed(1)
 
 # Load functions
-dir <- './Manuscript/Functions/'
+dir <- './functions/'
 files.sources = list.files(dir)
 sapply(paste0(dir,files.sources), source)
 
-m1 <- readRDS('Manuscript/models/m1.rds')
-m2_1 <- readRDS('Manuscript/models/m2_1.rds')
-m2_2 <- readRDS('Manuscript/models/m2_2.rds')
-m3 <- readRDS('Manuscript/models/m3.rds')
+# Load models 
+m1 <- readRDS('models/m1.rds')
+m2_1 <- readRDS('models/m2_1.rds')
+m2_2 <- readRDS('models/m2_2.rds')
+m3 <- readRDS('models/m3.rds')
 
 # ----Dissimilarity plots ----
+
+# Expected dissimilarity at increasing |x_i - x_j| in each model
+
 pred_m1 <- with(m1, {
   pred_data <- data.frame(X_e_dis = seq(min(X_e_dis), max(X_e_dis), length.out = n_pred))
   
@@ -66,6 +70,7 @@ pred_m3 <- with(m3, {
   cbind(pred_sum, pred_data)
 })
 
+# Points
 pred_m3_pairs <- with(m3, {
   # PRED 1: With effect of isolation
   # Linear predictor
@@ -148,7 +153,7 @@ pred_u_m2_1_exp <- with(m2_1, {
   cbind(pred_sum, pred_data)
 })
 
-# Expected uniqueness (actual sites)
+# Expected uniqueness (sites)
 pred_u_m2_1 <- with(m2_1, {
   # Linear predictor
   u <- alpha/2 + X_iso %*% beta_iso + e_s # Simulate new site combinations
@@ -188,7 +193,7 @@ pred_u_m3_exp <- with(m3, {
   cbind(pred_sum, pred_data)
 })
 
-# Expected uniqueness (actual sites)
+# Expected uniqueness (sites)
 pred_u_m3 <- with(m3, {
   D_s         <- mean(X_e_dis) %*% beta_e_dis # Dissimilarity component (long)
   # Long dissimilarity component to matrix
@@ -255,9 +260,9 @@ pred_u_m3 <- with(m3, {
     theme(legend.position = ''))
 
 
-# ----  R2 dissimilarity plots ----
+# ----  R2 dissimilarity ----
 r2_m1 <-  with(m1, {
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilarity component
+  D_s <- X_e_dis %*% beta_e_dis
   eta <- alpha + D_s
   mu <- ilogit(eta) # link
   pred <- data.frame(calculate(mu, values = draws, nsim = 1000))
@@ -274,7 +279,7 @@ r2_m1 <-  with(m1, {
 r2_m2_1 <-  with(m2_1, {
   S_s <- X_iso %*% beta_iso
   eta <- alpha + S_s[row] + S_s[col]
-  mu <- ilogit(eta) # link
+  mu <- ilogit(eta)
   pred <- data.frame(calculate(mu, values = draws, nsim = 1000))
   
   apply(pred, 1, function(x) {
@@ -289,9 +294,9 @@ r2_m2_1 <-  with(m2_1, {
 
 r2_m3 <-  with(m3, {
   S_s <- X_iso %*% beta_iso
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilarity component
+  D_s <- X_e_dis %*% beta_e_dis 
   eta <- alpha + D_s + S_s[row] + S_s[col]
-  mu <- ilogit(eta) # link
+  mu <- ilogit(eta) 
   pred <- data.frame(calculate(mu, values = draws, nsim = 1000))
   
   apply(pred, 1, function(x) {
@@ -306,8 +311,7 @@ r2_m3 <-  with(m3, {
 
 # ---- R2 uniqueness plots ----
 r2_u_m1 <- with(m1, {
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilariy component (long)
-  # Long dissimilarity component to matrix
+  D_s <- X_e_dis %*% beta_e_dis 
   D_s_m <- zeros(length(unique(row)) + 1, length(unique(col)) + 1)
   D_s_m[cbind(row,col)]  <-  D_s
   D_s_m[cbind(col,row)]  <-  D_s
@@ -336,9 +340,9 @@ r2_u_m2_1 <- with(m2_1, {
   eta2 <- alpha/2 + X_iso %*% beta_iso + e_s
   
   
-  LCBD <- cbind(eta2, # Predictor + site re 
-                eta1) # Predictor alone
-  # calculate
+  LCBD <- cbind(eta2,
+                eta1)
+
   pred_u <- data.frame(calculate(LCBD, values = draws, nsim = 1000))
   apply(pred_u, 1, function(x){
     ypred <- x[51:100]  
@@ -352,7 +356,7 @@ r2_u_m2_1 <- with(m2_1, {
 
 r2_u_m2_2 <- with(m2_2, {
   LCBD <-  cbind(Y, alpha + X_iso %*% beta_iso)
-  # calculate
+
   pred_u <- data.frame(calculate(LCBD, values = draws, nsim = 1000))
   apply(pred_u, 1, function(x){
     ypred <- x[51:100]  
@@ -364,8 +368,7 @@ r2_u_m2_2 <- with(m2_2, {
 })
 
 r2_u_m1 <- with(m1, {
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilariy component (long)
-  # Long dissimilarity component to matrix
+  D_s <- X_e_dis %*% beta_e_dis
   D_s_m <- zeros(length(unique(row)) + 1, length(unique(col)) + 1)
   D_s_m[cbind(row,col)]  <-  D_s
   D_s_m[cbind(col,row)]  <-  D_s
@@ -376,8 +379,7 @@ r2_u_m1 <- with(m1, {
   eta2 <- alpha/2 + D_s_s + e_s
   
   LCBD <- cbind(eta2,
-                eta1) # Predictor alone
-  # calculate
+                eta1) 
   pred_u <- data.frame(calculate(LCBD, values = draws, nsim = 1000))
   apply(pred_u, 1, function(x){
     ypred <- x[51:100]  
@@ -392,26 +394,22 @@ r2_data <- rbind(data.frame( r2 = r2_m1, m = 'm1', comp = 'pairwise dissimilarit
                  data.frame( r2 = r2_m2_1, m = 'm2.2', comp = 'pairwise dissimilarity'),
                  data.frame( r2 = r2_m3, m = 'm3', comp = 'pairwise dissimilarity'),
                  data.frame( r2 = r2_u_m1, m = 'm1', comp = 'site uniqueness'),
-                 data.frame( r2 = r2_u_m3, m = 'm3', comp = 'site uniqueness'),
+                 data.frame( r2 = r2_m3, m = 'm3', comp = 'site uniqueness'),
                  data.frame( r2 = r2_u_m2_1, m = 'm2.1', comp ='site uniqueness'),
                  data.frame( r2 = r2_u_m2_2, m = 'm2.2', comp ='site uniqueness'))
 
 # ---- VARPART ----
 pred_m3_full <- with(m3, {
-  # Linear predictor
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilarity component (long)
-  
-  # Long dissimilarity component to matrix
+
+  D_s <- X_e_dis %*% beta_e_dis 
   D_s_m <- zeros(length(unique(row)) + 1, length(unique(col)) + 1)
   D_s_m[cbind(row,col)]  <-  D_s
   D_s_m[cbind(col,row)]  <-  D_s
   D_s_s <- greta::rowSums(D_s_m) / nrow(D_s_m)
   u <- alpha/2 + X_iso %*% beta_iso + D_s_s + e_s
-  
-  # calculate
+
   pred <- data.frame(calculate(u, values = draws, nsim = 1000))
-  
-  # quantiles
+
   pred_sum <- apply(pred, 2, function(x){
     quantile(as.numeric(x), probs = c(0.5))
     })
@@ -430,21 +428,16 @@ pred_m3_no_x <- with(m3, {
 })
 
 pred_m3_no_w <- with(m3, {
-  D_s <- X_e_dis %*% beta_e_dis # Dissimilarity component (long)
-  # Long dissimilarity component to matrix
+  D_s <- X_e_dis %*% beta_e_dis
   D_s_m <- zeros(length(unique(row)) + 1, length(unique(col)) + 1)
   D_s_m[cbind(row,col)]  <-  D_s
   D_s_m[cbind(col,row)]  <-  D_s
   D_s_s <- greta::rowSums(D_s_m) / nrow(D_s_m)
   u <- alpha/2 + D_s_s + e_s
-  # calculate
   pred <- data.frame(calculate(u, values = draws, nsim = 1000))
-  
-  # quantiles
   pred_sum <- apply(pred, 2, function(x){
     quantile(as.numeric(x), probs = c(0.5))
   })
-  
   pred_sum
 })
 
@@ -464,7 +457,7 @@ var_w = (var_exp - var(pred_m3_no_w)) / var_exp
 var_shared = var_xw - var_x - var_w
 
 var_comp = data.frame(component = c('01_pairwise', '03_site'),
-                      name = c('x (pairwise)', 'w (site-level)'),
+                      name = c('x \n (pairwise)', 'w \n (site-level)'),
                       prop = c(var_x, var_w),
                       prop2 = c(paste0(round(var_x*100,1), ' %'), paste0(round(var_w*100, 1), ' %')))
 
@@ -506,7 +499,7 @@ var_comp = data.frame(component = c('01_pairwise', '03_site'),
     scale_y_continuous(limits = c(0,01), expand = c(0,0), labels = scales::percent_format()) +
     scale_x_continuous(limits = c(-0.5,1.1)) ,
   ggplot(r2_data, aes(x = m, y = r2)) + 
-    geom_violin(aes(fill = comp), col = 'transparent', alpha = 0.4) + 
+    geom_violin(aes(fill = comp), col = 'transparent', alpha = 0.4, scale = 'width') + 
     facet_wrap(~ comp, scales = 'free', ncol = 2) + 
     stat_summary(fun.data = function(x){ 
       data.frame(y = quantile(x, 0.5),
@@ -524,4 +517,4 @@ var_comp = data.frame(component = c('01_pairwise', '03_site'),
           strip.background = element_blank()), ncol =2, rel_widths = c(2,3),
   labels = c('C', 'D'), label_size = 9), ncol = 1, label_size = 9, rel_heights = c(2.5,1)))
 
-ggsave('Manuscript/plots/simulations.png', sim_plot, width = 15, height = 15, dpi = 600, units = 'cm')
+ggsave('plots/simulations.png', sim_plot, width = 15, height = 15, dpi = 600, units = 'cm')

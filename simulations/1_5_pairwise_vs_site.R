@@ -24,26 +24,23 @@ annotation_custom2 <- function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax
 n_pred = 100
 
 # Load functions and models
-dir <- './Manuscript/Functions/'
+dir <- './functions/'
 files.sources = list.files(dir)
 sapply(paste0(dir,files.sources), source)
 
-m2_2 <- readRDS('Manuscript/models/m2_2.rds')
-m4 <- readRDS('Manuscript/models/m4.rds')
-m5 <- readRDS('Manuscript/models/m5.rds')
-m6 <- readRDS('Manuscript/models/m6.rds')
-m7 <- readRDS('Manuscript/models/m7.rds')
+m2_2 <- readRDS('models/m2_2.rds')
+m4 <- readRDS('models/m4.rds')
+m5 <- readRDS('models/m5.rds')
+m6 <- readRDS('models/m6.rds')
+m7 <- readRDS('models/m7.rds')
 
 # Calculate expected values
 pred_u_m4_exp <- with(m4, {
   pred_data <- data.frame(X_iso = mean(X_iso),
                           X_e_uni = seq(min(X_e_uni), max(X_e_uni), length.out = n_pred))
-  # Linear predictor
-  u <- alpha/2 + pred_data$X_e_uni %*% beta_e_uni# Simulate new site combinations
+  u <- alpha/2 + pred_data$X_e_uni %*% beta_e_uni
   SS <- ilogit(u*2)
-  # Draws
   pred <- data.frame(calculate(SS, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm4'))
@@ -52,12 +49,9 @@ pred_u_m4_exp <- with(m4, {
 pred_u_m5_exp <- with(m5, {
   pred_data <- data.frame(X_iso = mean(X_iso),
                           X_e_uni = seq(min(X_e_uni), max(X_e_uni), length.out = n_pred))
-  # Linear predictor
-  u <- alpha/2 + pred_data$X_e_uni %*% beta_e_uni# Simulate new site combinations
+  u <- alpha/2 + pred_data$X_e_uni %*% beta_e_uni
   SS <- ilogit(u*2)
-  # Draws
   pred <- data.frame(calculate(SS, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm5'))
@@ -66,12 +60,9 @@ pred_u_m5_exp <- with(m5, {
 pred_diss_m5_exp <- with(m5, {
   pred_data <- data.frame(X_iso = mean(X_iso),
                           X_e_dis = seq(min(X_e_dis), max(X_e_dis), length.out = n_pred))
-  # Linear predictor
-  eta <- alpha + pred_data$X_e_dis %*% beta_e_dis # Simulate new site combinations
+  eta <- alpha + pred_data$X_e_dis %*% beta_e_dis
   mu <- ilogit(eta)
-  # Draws
   pred <- data.frame(calculate(mu, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm5'))
@@ -82,12 +73,9 @@ pred_u_m6_exp <- with(m6, {
                           X_env = seq(min(scale(env_raw)), max(scale(env_raw)), length.out = n_pred))
 
   X_env2 <- predict(X_env, pred_data$X_env)
-  # Linear predictor
-  u <- alpha/2 + X_env2 %*% beta_env# Simulate new site combinations
+  u <- alpha/2 + X_env2 %*% beta_env
   SS <- ilogit(u*2)
-  # Draws
   pred <- data.frame(calculate(SS, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm6'))
@@ -99,12 +87,9 @@ pred_u_m7_exp <- with(m7, {
                           X_env = seq(min(scale(env_raw)), max(scale(env_raw)), length.out = n_pred))
   
   X_env2 <- predict(X_env, pred_data$X_env)
-  # Linear predictor
-  u <- alpha/2 + X_env2 %*% beta_env# Simulate new site combinations
+  u <- alpha/2 + X_env2 %*% beta_env
   SS <- ilogit(u*2)
-  # Draws
   pred <- data.frame(calculate(SS, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm7'))
@@ -113,13 +98,9 @@ pred_u_m7_exp <- with(m7, {
 pred_diss_m7_exp <- with(m7, {
   pred_data <- data.frame(X_iso = mean(X_iso),
                           X_e_dis = seq(min(X_e_dis), max(X_e_dis), length.out = n_pred))
-  
-  # Linear predictor
-  eta <- alpha + pred_data$X_e_dis %*% beta_e_dis # Simulate new site combinations
+  eta <- alpha + pred_data$X_e_dis %*% beta_e_dis 
   mu <- ilogit(eta)
-  # Draws
   pred <- data.frame(calculate(mu, values = draws, nsim = 10000))
-  # quantiles
   pred_sum <- t(apply(pred, 2, function(x)
     quantile(as.numeric(x), probs = c(0.025, 0.25, 0.5, 0.75, 0.975))))
   data.frame(cbind(pred_sum, pred_data, m = 'm7'))
@@ -189,7 +170,7 @@ diss_m7_plot <- ggplotGrob(ggplot(pred_diss_m7_exp, aes(x = X_e_dis, y = `X50.`)
     annotation_custom2(grob = diss_m7_plot, data = data.frame(m="m7"), ymin = 0.57, ymax = 0.82, xmin = -0.4, xmax = 1.75))
 
 
-## Summary
+## Summary of coeff
 draws4_df <- data.frame(do.call(rbind, m4$draws))
 draws4_df  <- draws4_df[,1:2]
 draws4_df$m <- 'm4'
@@ -317,6 +298,6 @@ pair_vs_site_fig <- plot_grid(plot_grid(uniq_plot, coef_plot_m4_5, rel_heights =
           plot_grid(env_plot, coef_plot_m6_7 , rel_heights = c(2,1), ncol =1, align = 'v', labels = c('B', 'D')),
           ncol = 2)
 
-ggsave( 'Manuscript/plots/pair_vs_site_plot.png',pair_vs_site_fig, width = 18, height = 8, dpi = 600, units = 'cm')
+ggsave( 'plots/pair_vs_site_plot.png',pair_vs_site_fig, width = 18, height = 8, dpi = 600, units = 'cm')
 
 
