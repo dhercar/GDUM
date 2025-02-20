@@ -1,3 +1,4 @@
+# Load packages 
 library(greta)
 library(vegan)
 library(ggplot2)
@@ -5,7 +6,8 @@ library(tidyverse)
 library(cowplot)
 library(latex2exp)
 
-dir <- './Manuscript/Functions/'
+# Load functions
+dir <- './Functions/'
 files.sources = list.files(dir)
 sapply(paste0(dir,files.sources), source)
 
@@ -56,12 +58,12 @@ distribution(Y) <- greta::multinomial(trials, mu, n_realisations)
 
 # Estimate
 m1 <- model(beta, alpha, e_s, SD_s)
-draws <- greta::mcmc(m1, hmc(Lmin = 10, Lmax = 15), 
+draws <- greta::mcmc(m1, hmc(Lmin = 15, Lmax = 20), 
                      warmup = 5000,
-                     n_samples = 5000)
+                     n_samples = 10000)
 
-# check chains
-gelman.diag2(draws) #Rhat
+ # check chains
+gelman.diag(draws) #Rhat
 bayesplot::mcmc_trace(draws, regex_pars = c('beta', 'alpha', 'SD'))
 bayesplot::mcmc_rank_overlay(draws, regex_pars = c('beta', 'alpha', 'SD'))
 bayesplot::mcmc_intervals(draws, regex_pars = c('beta', 'alpha', 'SD'))
@@ -80,6 +82,7 @@ plot.data <- e_s_m1 %>%
   inner_join(doubs.spa) %>%
   mutate(x = ifelse(k == 'rep', x - 170, x),
          y = ifelse(k == 'rep', y + 100, y))
+
 
 (map.plot <- ggplot(plot.data, aes(x = x, y = y)) +  
   theme_void() +
@@ -156,12 +159,12 @@ n_realisations <- nrow(Y)
 distribution(Y) <- greta::multinomial(trials, mu, n_realisations)
 
 m2 <- model(alpha, e_s, SD_s)
-draws2 <- greta::mcmc(m2, hmc(Lmin = 10, Lmax = 15), 
+draws2 <- greta::mcmc(m2, hmc(Lmin = 15, Lmax = 20), 
                      warmup = 5000,
-                     n_samples = 5000)
+                     n_samples = 10000)
 
 # check chains
-gelman.diag2(draws2) #Rhat
+gelman.diag(draws2) #Rhat
 bayesplot::mcmc_trace(draws2, regex_pars = c('beta', 'alpha', 'SD'))
 bayesplot::mcmc_rank_overlay(draws2, regex_pars = c('beta', 'alpha', 'SD'))
 bayesplot::mcmc_intervals(draws2, regex_pars = c('beta', 'alpha', 'SD'))
@@ -176,6 +179,7 @@ S_s_m2 <-  data.frame(calculate(sweep(e_s,2,alpha/2,FUN = '+' ),
 S_s_m2 <- data.frame(data.frame(apply(S_s_m2,2 , function(x) quantile(x, prob = c(0.5)))))
 
 
+# Change in u when accounting for environmental gradient
 lcbd_comp <- data.frame(dif_m = (S_s_m1 - S_s_m2), k = rep(c('rep', 'sim'), each = 30), s = rep(1:30, 2))
 names(lcbd_comp)[1] <- 'dif_m'
 
@@ -199,7 +203,8 @@ plot_doubs <- plot_grid(diss.plot,
 
 
 
-ggsave('Manuscript/plots/plot_doubs.png', plot_doubs, width = 18, height = 12, units = 'cm', dpi = 600)
+ggsave('plots/plot_doubs.png', plot_doubs, width = 18, height = 12, units = 'cm', dpi = 600)
 
 
-summary(draws2)
+summary(draws)[[2]]
+summary(draws2)[[2]]

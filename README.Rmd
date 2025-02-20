@@ -5,7 +5,7 @@ output: github_document
 
 # Fitting GDUMs in greta
 
-Here we show how to fit and inspect Generalised Dissimilarity Uniqueness Models (DGUM) using greta. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](link). 
+Here we show how to fit and inspect Generalized Dissimilarity Uniqueness Models (DGUM) using `greta`. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](link to DOI). 
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 # Load functions
@@ -31,9 +31,12 @@ We will use the [doubs dataset](https://www.davidzeleny.net/anadat-r/doku.php/en
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 # Load datasets
-doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', row.names = 1)
-doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', row.names = 1)
-doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', row.names = 1)
+doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', 
+                      row.names = 1)
+doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', 
+                      row.names = 1)
+doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', 
+                      row.names = 1)
 ```
 
 doubs.spe
@@ -67,10 +70,10 @@ kableExtra::kable(head(X))
 `make_y_df()` computes pairwise dissimilarities and returns a data frame in long format. Different options are available, including: 
 
 - Methods available in `vegan::vegdist()`: `make_y_df(data, method = 'bray')`
-- Numerator-denominator versions of Sorensen and Jaccard indices: `make_y_df(data, method = 'jaccard', num_den = TRUE)`
+- Numerator-denominator versions of Sorensen-Dice and Jaccard indices: `make_y_df(data, method = 'jaccard', num_den = TRUE)`
 - Full matrix of shared and unshared species between samples: `make_y_df(data, method = 'abcd')`
 
-We generate different Y matrices to show how GDUM can handle different families
+We generate different matrices to show how GDUM can handle different response variables.
 
 ```{r}
 Y_bin <- make_y_df(com = doubs.spe, method = 'sorensen', num_den = TRUE)
@@ -87,10 +90,12 @@ all.equal(X[,c('s1','s2')],Y_bin[,c('s1','s2')])
 
 ## Fitting models
 
-We provide a function (`fit_gdum()`) to help built GDUMs in `greta`. By deafault, `fit_gdum()` uses uninformative priors that expect predictors to be scaled. In this example, we use nitrogen concentration as a pairwise predictor and dbo as a site-level effect. 
+We provide a function (`fit_gdum()`) to help built GDUMs in `greta`. By deafault, `fit_gdum()` uses uninformative priors that expect predictors to be scaled. In this example, we use nitrogen (nit) concentration as a pairwise predictor and pH as a site-level effect. 
+
 ```{r}
 X$s_dist_nit <- scale(X$dist_nit)
-doubs.env$s_dbo <- scale(log(doubs.env$dbo))
+doubs.env$s_pH <- scale(doubs.env$pH)
+
 ```
 
 In addition, a design matrix `D` indicating which sites are ocmpared in each row is required to match dissimilarities with pairwise- and site-level predictor. 
@@ -110,7 +115,7 @@ m_gaus <- fit_gdum(Y = Y_bray[,3], # Dissimilarities
          family = 'gaussian',
          link = 'identity',
          diss_formula = ~ s_dist_nit, # pairwise level formula 
-         site_formula = ~ dbo, # site level formula
+         site_formula = ~ s_pH, # site level formula
          warmup = 2000, # mcmc warm up
          n_samples = 4000, # samples taken after warm up
          Lmin = 15, 
