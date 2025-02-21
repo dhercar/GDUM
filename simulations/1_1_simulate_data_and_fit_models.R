@@ -60,7 +60,7 @@ com_data <- sim_com_data(n_sp = n_sp,
                          isolation_effect = w_effect,
                          seed = 1)
 
-
+saveRDS(com_data, './simulations/com_data')
 head(com_data$com_data[,1:10])
 
 # PREPARE DATA
