@@ -64,7 +64,7 @@ predict_gdum <- function(fit,
   # Compute predictions
   if(response == 'dissimilarity'){
   new_mu <- fit$ilink(new_v_eta[D_new[,1]] + new_v_eta[D_new[,2]] + new_h_eta + fit$greta_arrays$alpha)
-  draws_mu <- t(apply(data.frame(calculate(new_mu, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
+  draws_mu <- t(apply(data.frame(greta::calculate(new_mu, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
   return(draws_mu)
   }
   
@@ -74,10 +74,11 @@ predict_gdum <- function(fit,
   D_s_m[cbind(D_new[,2], D_new[,1])]  <-  new_h_eta
   D_s_s <- greta::rowSums(D_s_m) / nrow(D_s_m)
   u_eta <- fit$greta_arrays$alpha/2 + D_s_s + new_v_eta
-  draws_u <- t(apply(data.frame(calculate(u_eta, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
+  draws_u <- t(apply(data.frame(greta::calculate(u_eta, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
   return(draws_u)
   }
   
   return(list(mu = draws_mu, u = draws_u))
 }
+
 
