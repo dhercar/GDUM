@@ -3,7 +3,7 @@ title: "Untitled"
 output: github_document
 ---
 
-# Fitting GDUMs in greta
+# Fitting GDUMs in `greta`
 
 Here we show how to fit and inspect Generalized Dissimilarity Uniqueness Models (DGUM) using `greta`. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](link to DOI). 
 
@@ -70,7 +70,7 @@ kableExtra::kable(head(X))
 `make_y_df()` computes pairwise dissimilarities and returns a data frame in long format. Different options are available, including: 
 
 - Methods available in `vegan::vegdist()`: `make_y_df(data, method = 'bray')`
-- Numerator-denominator versions of Sorensen-Dice and Jaccard indices: `make_y_df(data, method = 'jaccard', num_den = TRUE)`
+- Numerator-denominator versions of Sørensen-Dice and Jaccard indices: `make_y_df(data, method = 'jaccard', num_den = TRUE)`
 - Full matrix of shared and unshared species between samples: `make_y_df(data, method = 'abcd')`
 
 We generate different matrices to show how GDUM can handle different response variables.
@@ -90,7 +90,7 @@ all.equal(X[,c('s1','s2')],Y_bin[,c('s1','s2')])
 
 ## Fitting models
 
-We provide a function (`fit_gdum()`) to help built GDUMs in `greta`. By deafault, `fit_gdum()` uses uninformative priors that expect predictors to be scaled. In this example, we use nitrogen (nit) concentration as a pairwise predictor and pH as a site-level effect. 
+We provide a function `fit_gdum()` to help built GDUMs in `greta`. By deafault, `fit_gdum()` uses uninformative priors that expect predictors to be scaled. In this example, we use nitrogen (nit) concentration as a pairwise predictor and pH as a site-level effect. 
 
 ```{r}
 X$s_dist_nit <- scale(X$dist_nit)
@@ -98,7 +98,7 @@ doubs.env$s_pH <- scale(doubs.env$pH)
 
 ```
 
-In addition, a design matrix `D` indicating which sites are ocmpared in each row is required to match dissimilarities with pairwise- and site-level predictor. 
+In addition, a design matrix `D` indicating which sites are compared in each row is required to match dissimilarities with pairwise- and site-level predictor. 
 
 ```{r}
 D <- X[,c('s1','s2')]
@@ -166,7 +166,7 @@ m_beta <- fit_gdum(Y = Y_bray$diss2,
          family = 'beta',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 15,
@@ -193,7 +193,7 @@ m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
          family = 'binomial',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 10,
@@ -204,11 +204,11 @@ m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
 summary(m_bin$draws)[[1]][1:4,]
 ```
 
-The binomial distribution does not contain any scale parameter because a specific relationship between the variance, and the number of trials (denominator), and the probability of success (estimated dissimilarity) is expected. 
+The binomial distribution does not contain any scale parameter.
 
 #### Beta binomial distribution
 
-The beta-binomial distribution can be useful when the data is over- or under-dispersed compared to the binomial distribution.
+The beta-binomial distribution can be useful when the data is overdispersed compared to the binomial distribution.
 
 ```{r}
 m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
@@ -219,7 +219,7 @@ m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
          family = 'betabinomial',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ s_dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 10,
@@ -241,7 +241,7 @@ Community uniqueness (u) values, [equivalent to $SS_i$ in the computation of LCB
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness')
 ```
 
-We can compare those with the ones obtained with `adespatial::`
+We can compare those with the ones obtained with `adespatial::` and map the values across the river:
 ```{r}
 u_pred <- data.frame(u_pred, lcbd = adespatial::LCBD.comp(vegan::vegdist(log1p(doubs.spe)))$LCBD)
 ```
@@ -260,7 +260,6 @@ ggplot(u_pred, aes(x = lcbd, y = `X50.`/sum(`X50.`))) +
 
 ```
 
-And map the values in space
 
 ```{r}
 ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
@@ -271,7 +270,7 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
   scale_size_continuous('u_i', range = c(1,7))
 ```
 
-Similarly, we can obtain the expected $u$ values when the site-level random effect is set to 0
+Similarly, we can obtain the expected $u$ values when the site-level random effect is set to 0, indicating the expected site uniqueness given the combination of predictors in each site. 
 
 ```{r}
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness', re = FALSE)
@@ -285,7 +284,7 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 
 ```
 
-Or when controlling for the environmental gradient (`s_dist_nit`) 
+Similarly, we can control for nitrogen concentration (`s_dist_nit`) to asses how this pairwise variable changes uniqueness estimates
 
 ```{r}
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness', D_new = D, W_new = doubs.env, re = TRUE)
@@ -302,7 +301,7 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 
 ### Predict with new data
 
-It is often useful look to use predictions to visualize the effect of individual predictors. This can also be achieved with `predict_gdum()`.
+It is often useful to visualize the effect of individual predictors. This can also be achieved with `predict_gdum()`.
 
 ```{r}
 # generate new data
@@ -311,7 +310,7 @@ D_new <- t(combn(n, 2)) # n pairwise combinations
 X_new <- data.frame(s_dist_nit = seq(min(X$s_dist_nit), 
                                      max(X$s_dist_nit), 
                                      length.out = nrow(D_new))) # Simulate pairwise predictors
-W_new <- data.frame(s_dbo = rep(mean(doubs.env$s_dbo), n)) # Simulate site-level predictor
+W_new <- data.frame(s_pH = rep(mean(doubs.env$s_pH), n)) # Simulate site-level predictor
 
 # Make predictions
 pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
@@ -330,17 +329,17 @@ ggplot(cbind(pred, X_new), aes(x = s_dist_nit,y = `50%`)) +
 # generate new data
 n = 50
 D_new <- t(combn(n, 2)) # n pairwise combinations
-X_new <- data.frame(s_dist_nit = rep(mean(doubs.env$s_dbo),
+X_new <- data.frame(s_dist_nit = rep(mean(doubs.env$s_pH),
                                      length.out = nrow(D_new))) # Simulate pairwise predictors
-W_new <- data.frame(s_dbo = seq(min(doubs.env$s_dbo),max(doubs.env$s_dbo), length.out = n)) # Simulate site-level predictor
+W_new <- data.frame(s_pH = seq(min(doubs.env$s_pH),max(doubs.env$s_pH), length.out = n)) # Simulate site-level predictor
 
 # Make predictions
 pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
                      re = FALSE, samples = 5000, response = 'uniqueness')
 
-ggplot(cbind(pred, W_new), aes(x = s_dbo,y = `50%`)) +
+ggplot(cbind(pred, W_new), aes(x = s_pH,y = `50%`)) +
   theme_bw() + 
-  ylab('expected dissimilarity') + 
+  ylab('expected uniqueness (u_i)') + 
   geom_ribbon(aes(ymin = `2.5%`,max = `97.5%`), fill = 'lightblue', alpha = 0.5) + 
   geom_ribbon(aes(ymin = `25%`,max = `75%`), fill = 'steelblue4', alpha = 0.5) + 
   geom_line(colour = 'white', linewidth = 1.5) +

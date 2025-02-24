@@ -107,7 +107,6 @@ ggplot(u, aes(x = LCBD, y = X50./sum( X50.) )) +
   ylim(range(c(u$X50./sum( u$X50.) , u$X50_no_re/sum( u$X50_no_re), u$X50_no_x/sum( u$X50_no_x)))) +
   ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij}, w_i, \\alpha_i$')) +
   geom_abline(), labels = c('A', 'B', 'C'),
-ncol = 3
-)
+ncol = 3)
 
-ggsave('./plots/one_to_one_plot.png', width = 19, height = 8, dpi = 600, units = 'cm')
+ggsave('./SI/one_to_one_plot.png', width = 19, height = 8, dpi = 600, units = 'cm')

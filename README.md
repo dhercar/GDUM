@@ -1,13 +1,13 @@
 Untitled
 ================
 
-# Fitting GDUMs in greta
+# Fitting GDUMs in `greta`
 
-Here we show how to fit and inspect Generalised Dissimilarity Uniqueness
-Models (DGUM) using greta. We provide some helper functions to construct
-the models and generate predictions.This scripts assumes that a folder
-named `functions` exists in the working directory with the helper
-functions provided [here](link).
+Here we show how to fit and inspect Generalized Dissimilarity Uniqueness
+Models (DGUM) using `greta`. We provide some helper functions to
+construct the models and generate predictions.This scripts assumes that
+a folder named `functions` exists in the working directory with the
+helper functions provided [here](link%20to%20DOI).
 
 ``` r
 # Load functions
@@ -39,9 +39,12 @@ Doubs river.
 
 ``` r
 # Load datasets
-doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', row.names = 1)
-doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', row.names = 1)
-doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', row.names = 1)
+doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', 
+                      row.names = 1)
+doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', 
+                      row.names = 1)
+doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', 
+                      row.names = 1)
 ```
 
 doubs.spe
@@ -106,13 +109,13 @@ in long format. Different options are available, including:
 
 - Methods available in `vegan::vegdist()`:
   `make_y_df(data, method = 'bray')`
-- Numerator-denominator versions of Sorensen and Jaccard indices:
+- Numerator-denominator versions of Sørensen-Dice and Jaccard indices:
   `make_y_df(data, method = 'jaccard', num_den = TRUE)`
 - Full matrix of shared and unshared species between samples:
   `make_y_df(data, method = 'abcd')`
 
-We generate different Y matrices to show how GDUM can handle different
-families
+We generate different matrices to show how GDUM can handle different
+response variables.
 
 ``` r
 Y_bin <- make_y_df(com = doubs.spe, method = 'sorensen', num_den = TRUE)
@@ -160,17 +163,17 @@ all.equal(X[,c('s1','s2')],Y_bin[,c('s1','s2')])
 
 ## Fitting models
 
-We provide a function (`fit_gdum()`) to help built GDUMs in `greta`. By
+We provide a function `fit_gdum()` to help built GDUMs in `greta`. By
 deafault, `fit_gdum()` uses uninformative priors that expect predictors
-to be scaled. In this example, we use nitrogen concentration as a
-pairwise predictor and dbo as a site-level effect.
+to be scaled. In this example, we use nitrogen (nit) concentration as a
+pairwise predictor and pH as a site-level effect.
 
 ``` r
 X$s_dist_nit <- scale(X$dist_nit)
-doubs.env$s_dbo <- scale(log(doubs.env$dbo))
+doubs.env$s_pH <- scale(doubs.env$pH)
 ```
 
-In addition, a design matrix `D` indicating which sites are ocmpared in
+In addition, a design matrix `D` indicating which sites are compared in
 each row is required to match dissimilarities with pairwise- and
 site-level predictor.
 
@@ -188,7 +191,7 @@ m_gaus <- fit_gdum(Y = Y_bray[,3], # Dissimilarities
          family = 'gaussian',
          link = 'identity',
          diss_formula = ~ s_dist_nit, # pairwise level formula 
-         site_formula = ~ dbo, # site level formula
+         site_formula = ~ s_pH, # site level formula
          warmup = 2000, # mcmc warm up
          n_samples = 4000, # samples taken after warm up
          Lmin = 15, 
@@ -223,45 +226,45 @@ coda::gelman.diag(m_gaus$draws)
     ## Potential scale reduction factors:
     ## 
     ##                 Point est. Upper C.I.
-    ## alpha                 1.01       1.02
-    ## SD_s                  1.00       1.01
-    ## sigma                 1.00       1.00
-    ## beta_s_dist_nit       1.00       1.00
-    ## lambda_dbo            1.01       1.02
-    ## e_s[1,1]              1.00       1.01
-    ## e_s[2,1]              1.01       1.02
-    ## e_s[3,1]              1.01       1.02
-    ## e_s[4,1]              1.01       1.02
-    ## e_s[5,1]              1.00       1.01
-    ## e_s[6,1]              1.01       1.03
-    ## e_s[7,1]              1.01       1.01
-    ## e_s[8,1]              1.01       1.03
-    ## e_s[9,1]              1.01       1.02
-    ## e_s[10,1]             1.01       1.02
-    ## e_s[11,1]             1.01       1.02
-    ## e_s[12,1]             1.01       1.02
-    ## e_s[13,1]             1.00       1.01
-    ## e_s[14,1]             1.01       1.02
-    ## e_s[15,1]             1.01       1.01
-    ## e_s[16,1]             1.01       1.01
-    ## e_s[17,1]             1.01       1.03
-    ## e_s[18,1]             1.01       1.02
-    ## e_s[19,1]             1.01       1.01
-    ## e_s[20,1]             1.00       1.01
-    ## e_s[21,1]             1.00       1.01
-    ## e_s[22,1]             1.02       1.06
-    ## e_s[23,1]             1.01       1.03
-    ## e_s[24,1]             1.01       1.03
-    ## e_s[25,1]             1.01       1.02
-    ## e_s[26,1]             1.01       1.02
-    ## e_s[27,1]             1.01       1.02
-    ## e_s[28,1]             1.01       1.02
-    ## e_s[29,1]             1.01       1.02
-    ## e_s[30,1]             1.02       1.05
+    ## alpha                    1       1.00
+    ## SD_s                     1       1.01
+    ## sigma                    1       1.00
+    ## beta_s_dist_nit          1       1.00
+    ## lambda_s_pH              1       1.00
+    ## e_s[1,1]                 1       1.00
+    ## e_s[2,1]                 1       1.00
+    ## e_s[3,1]                 1       1.01
+    ## e_s[4,1]                 1       1.00
+    ## e_s[5,1]                 1       1.00
+    ## e_s[6,1]                 1       1.00
+    ## e_s[7,1]                 1       1.00
+    ## e_s[8,1]                 1       1.00
+    ## e_s[9,1]                 1       1.00
+    ## e_s[10,1]                1       1.00
+    ## e_s[11,1]                1       1.00
+    ## e_s[12,1]                1       1.00
+    ## e_s[13,1]                1       1.00
+    ## e_s[14,1]                1       1.00
+    ## e_s[15,1]                1       1.00
+    ## e_s[16,1]                1       1.00
+    ## e_s[17,1]                1       1.00
+    ## e_s[18,1]                1       1.00
+    ## e_s[19,1]                1       1.01
+    ## e_s[20,1]                1       1.00
+    ## e_s[21,1]                1       1.01
+    ## e_s[22,1]                1       1.00
+    ## e_s[23,1]                1       1.00
+    ## e_s[24,1]                1       1.00
+    ## e_s[25,1]                1       1.00
+    ## e_s[26,1]                1       1.00
+    ## e_s[27,1]                1       1.00
+    ## e_s[28,1]                1       1.00
+    ## e_s[29,1]                1       1.00
+    ## e_s[30,1]                1       1.00
     ## 
     ## Multivariate psrf
     ## 
-    ## 1.04
+    ## 1.01
 
 In our case, all values are relatively small ($\geq 1.01$) indicating
 that chains have succesfully converged.
@@ -273,12 +276,12 @@ parameter
 summary(m_gaus$draws)[[1]][1:5,]
 ```
 
-    ##                         Mean          SD     Naive SE Time-series SE
-    ## alpha            0.642809431 0.084567313 6.685633e-04   4.539311e-03
-    ## SD_s             0.135790236 0.021235703 1.678830e-04   5.755833e-04
-    ## sigma            0.187553460 0.006634300 5.244875e-05   6.845538e-05
-    ## beta_s_dist_nit  0.167638521 0.013465504 1.064542e-04   1.473987e-04
-    ## lambda_dbo      -0.001445939 0.006861546 5.424529e-05   2.517917e-04
+    ##                        Mean          SD     Naive SE Time-series SE
+    ## alpha           0.630403872 0.050203882 3.968965e-04   5.891248e-04
+    ## SD_s            0.134939475 0.020694808 1.636068e-04   2.694513e-04
+    ## sigma           0.187602791 0.006595838 5.214468e-05   8.003544e-05
+    ## beta_s_dist_nit 0.167340772 0.013244816 1.047095e-04   1.723781e-04
+    ## lambda_s_pH     0.008054158 0.026125398 2.065394e-04   2.529993e-04
 
 - `sigma` is the standard deviation of the normally distributed
   residuals
@@ -304,7 +307,7 @@ m_beta <- fit_gdum(Y = Y_bray$diss2,
          family = 'beta',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 15,
@@ -315,12 +318,12 @@ m_beta <- fit_gdum(Y = Y_bray$diss2,
 summary(m_beta$draws)[[1]][1:5,]
 ```
 
-    ##                        Mean         SD     Naive SE Time-series SE
-    ## alpha           0.602169670 0.45007733 0.0035581738   0.0099360090
-    ## SD_s            0.815576113 0.12120560 0.0009582144   0.0016163943
-    ## phi             4.987557346 0.34278004 0.0027099141   0.0033175547
-    ## beta_s_dist_nit 0.811409197 0.06673688 0.0005276014   0.0006406695
-    ## lambda_dbo      0.006004119 0.03792907 0.0002998556   0.0006199874
+    ##                       Mean         SD     Naive SE Time-series SE
+    ## alpha           0.65803477 0.29297989 0.0023162094   0.0036251243
+    ## SD_s            0.81557566 0.12069991 0.0009542166   0.0015750909
+    ## phi             4.97880531 0.34467349 0.0027248832   0.0068935729
+    ## beta_s_dist_nit 0.81264265 0.06763226 0.0005346799   0.0006433403
+    ## lambda_s_pH     0.04301759 0.15374221 0.0012154389   0.0015254916
 
 Instead of `sigma`, `phi` is the scale parameter of the beta
 distribution. The larger the value of `phi`, the narrower the
@@ -342,7 +345,7 @@ m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
          family = 'binomial',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 10,
@@ -353,21 +356,18 @@ m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
 summary(m_bin$draws)[[1]][1:4,]
 ```
 
-    ##                      Mean         SD     Naive SE Time-series SE
-    ## alpha           0.4830235 0.59770395 0.0047252646   0.0514787893
-    ## SD_s            1.3323207 0.19778360 0.0015636167   0.0076574601
-    ## beta_s_dist_nit 0.9538962 0.04013922 0.0003173284   0.0006318867
-    ## lambda_dbo      0.0134385 0.05770977 0.0004562358   0.0038424096
+    ##                       Mean         SD     Naive SE Time-series SE
+    ## alpha           0.59733609 0.44307789 0.0035028383   0.0245509368
+    ## SD_s            1.33190685 0.20943654 0.0016557413   0.0070029789
+    ## beta_s_dist_nit 0.95363949 0.04059751 0.0003209515   0.0005036378
+    ## lambda_s_pH     0.07504937 0.24392231 0.0019283752   0.0098507196
 
-The binomial distribution does not contain any scale parameter because a
-specific relationship between the variance, and the number of trials
-(denominator), and the probability of success (estimated dissimilarity)
-is expected.
+The binomial distribution does not contain any scale parameter.
 
 #### Beta binomial distribution
 
-The beta-binomial distribution can be useful when the data is over- or
-under-dispersed compared to the binomial distribution.
+The beta-binomial distribution can be useful when the data is
+overdispersed compared to the binomial distribution.
 
 ``` r
 m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
@@ -378,7 +378,7 @@ m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
          family = 'betabinomial',
          link = 'logit',
          diss_formula = ~ s_dist_nit,
-         site_formula = ~ s_dbo,
+         site_formula = ~ s_pH,
          warmup = 2000,
          n_samples = 4000,
          Lmin = 10,
@@ -389,8 +389,8 @@ m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
 
     ## 
 
-    ##     warmup                                           0/2000 | eta:  ?s              warmup =                                        50/2000 | eta:  1m              warmup ==                                      100/2000 | eta: 41s              warmup ===                                     150/2000 | eta: 35s              warmup ====                                    200/2000 | eta: 31s              warmup =====                                   250/2000 | eta: 29s              warmup ======                                  300/2000 | eta: 28s              warmup =======                                 350/2000 | eta: 27s              warmup ========                                400/2000 | eta: 25s              warmup =========                               450/2000 | eta: 24s              warmup ==========                              500/2000 | eta: 23s              warmup ==========                              550/2000 | eta: 22s              warmup ===========                             600/2000 | eta: 22s              warmup ============                            650/2000 | eta: 21s              warmup =============                           700/2000 | eta: 20s              warmup ==============                          750/2000 | eta: 19s              warmup ===============                         800/2000 | eta: 18s              warmup ================                        850/2000 | eta: 17s | <1% bad    warmup =================                       900/2000 | eta: 17s | <1% bad    warmup ==================                      950/2000 | eta: 16s | <1% bad    warmup ===================                    1000/2000 | eta: 15s | <1% bad    warmup ====================                   1050/2000 | eta: 14s | <1% bad    warmup =====================                  1100/2000 | eta: 14s | <1% bad    warmup ======================                 1150/2000 | eta: 13s | <1% bad    warmup =======================                1200/2000 | eta: 12s | <1% bad    warmup ========================               1250/2000 | eta: 11s | <1% bad    warmup =========================              1300/2000 | eta: 10s | <1% bad    warmup ==========================             1350/2000 | eta: 10s | <1% bad    warmup ===========================            1400/2000 | eta:  9s | <1% bad    warmup ============================           1450/2000 | eta:  8s | <1% bad    warmup ============================           1500/2000 | eta:  7s | <1% bad    warmup =============================          1550/2000 | eta:  7s | <1% bad    warmup ==============================         1600/2000 | eta:  6s | <1% bad    warmup ===============================        1650/2000 | eta:  5s | <1% bad    warmup ================================       1700/2000 | eta:  4s | <1% bad    warmup =================================      1750/2000 | eta:  4s | <1% bad    warmup ==================================     1800/2000 | eta:  3s | <1% bad    warmup ===================================    1850/2000 | eta:  2s | <1% bad    warmup ====================================   1900/2000 | eta:  1s | <1% bad    warmup =====================================  1950/2000 | eta:  1s | <1% bad    warmup ====================================== 2000/2000 | eta:  0s | <1% bad
-    ##   sampling                                           0/4000 | eta:  ?s            sampling                                          50/4000 | eta:  1m            sampling =                                       100/4000 | eta:  1m            sampling =                                       150/4000 | eta:  1m            sampling ==                                      200/4000 | eta:  1m            sampling ==                                      250/4000 | eta:  1m            sampling ===                                     300/4000 | eta:  1m            sampling ===                                     350/4000 | eta:  1m            sampling ====                                    400/4000 | eta:  1m            sampling ====                                    450/4000 | eta:  1m            sampling =====                                   500/4000 | eta:  1m            sampling =====                                   550/4000 | eta:  1m            sampling ======                                  600/4000 | eta:  1m            sampling ======                                  650/4000 | eta:  1m            sampling =======                                 700/4000 | eta:  1m            sampling =======                                 750/4000 | eta:  1m            sampling ========                                800/4000 | eta:  1m            sampling ========                                850/4000 | eta:  1m            sampling =========                               900/4000 | eta:  1m            sampling =========                               950/4000 | eta:  1m            sampling ==========                             1000/4000 | eta:  1m            sampling ==========                             1050/4000 | eta: 50s            sampling ==========                             1100/4000 | eta: 49s            sampling ===========                            1150/4000 | eta: 48s            sampling ===========                            1200/4000 | eta: 47s            sampling ============                           1250/4000 | eta: 46s            sampling ============                           1300/4000 | eta: 45s            sampling =============                          1350/4000 | eta: 44s            sampling =============                          1400/4000 | eta: 43s            sampling ==============                         1450/4000 | eta: 43s            sampling ==============                         1500/4000 | eta: 42s            sampling ===============                        1550/4000 | eta: 41s            sampling ===============                        1600/4000 | eta: 40s            sampling ================                       1650/4000 | eta: 39s            sampling ================                       1700/4000 | eta: 38s            sampling =================                      1750/4000 | eta: 38s            sampling =================                      1800/4000 | eta: 37s            sampling ==================                     1850/4000 | eta: 36s            sampling ==================                     1900/4000 | eta: 36s            sampling ===================                    1950/4000 | eta: 35s            sampling ===================                    2000/4000 | eta: 34s            sampling ===================                    2050/4000 | eta: 33s            sampling ====================                   2100/4000 | eta: 32s            sampling ====================                   2150/4000 | eta: 31s            sampling =====================                  2200/4000 | eta: 30s            sampling =====================                  2250/4000 | eta: 29s            sampling ======================                 2300/4000 | eta: 29s            sampling ======================                 2350/4000 | eta: 28s            sampling =======================                2400/4000 | eta: 27s            sampling =======================                2450/4000 | eta: 26s            sampling ========================               2500/4000 | eta: 25s            sampling ========================               2550/4000 | eta: 24s            sampling =========================              2600/4000 | eta: 24s            sampling =========================              2650/4000 | eta: 23s            sampling ==========================             2700/4000 | eta: 22s            sampling ==========================             2750/4000 | eta: 21s            sampling ===========================            2800/4000 | eta: 20s            sampling ===========================            2850/4000 | eta: 19s            sampling ============================           2900/4000 | eta: 18s            sampling ============================           2950/4000 | eta: 18s            sampling ============================           3000/4000 | eta: 17s            sampling =============================          3050/4000 | eta: 16s            sampling =============================          3100/4000 | eta: 15s            sampling ==============================         3150/4000 | eta: 14s            sampling ==============================         3200/4000 | eta: 13s            sampling ===============================        3250/4000 | eta: 13s            sampling ===============================        3300/4000 | eta: 12s            sampling ================================       3350/4000 | eta: 11s            sampling ================================       3400/4000 | eta: 10s            sampling =================================      3450/4000 | eta:  9s            sampling =================================      3500/4000 | eta:  8s            sampling ==================================     3550/4000 | eta:  8s            sampling ==================================     3600/4000 | eta:  7s            sampling ===================================    3650/4000 | eta:  6s            sampling ===================================    3700/4000 | eta:  5s            sampling ====================================   3750/4000 | eta:  4s            sampling ====================================   3800/4000 | eta:  3s            sampling =====================================  3850/4000 | eta:  3s            sampling =====================================  3900/4000 | eta:  2s            sampling ====================================== 3950/4000 | eta:  1s            sampling ====================================== 4000/4000 | eta:  0s
+    ##     warmup                                           0/2000 | eta:  ?s              warmup =                                        50/2000 | eta:  1m              warmup ==                                      100/2000 | eta: 43s              warmup ===                                     150/2000 | eta: 37s              warmup ====                                    200/2000 | eta: 34s              warmup =====                                   250/2000 | eta: 31s              warmup ======                                  300/2000 | eta: 30s              warmup =======                                 350/2000 | eta: 29s              warmup ========                                400/2000 | eta: 28s              warmup =========                               450/2000 | eta: 26s              warmup ==========                              500/2000 | eta: 25s              warmup ==========                              550/2000 | eta: 24s              warmup ===========                             600/2000 | eta: 23s              warmup ============                            650/2000 | eta: 22s              warmup =============                           700/2000 | eta: 21s              warmup ==============                          750/2000 | eta: 21s              warmup ===============                         800/2000 | eta: 20s              warmup ================                        850/2000 | eta: 19s | <1% bad    warmup =================                       900/2000 | eta: 18s | <1% bad    warmup ==================                      950/2000 | eta: 17s | <1% bad    warmup ===================                    1000/2000 | eta: 16s | <1% bad    warmup ====================                   1050/2000 | eta: 15s | <1% bad    warmup =====================                  1100/2000 | eta: 14s | <1% bad    warmup ======================                 1150/2000 | eta: 14s | <1% bad    warmup =======================                1200/2000 | eta: 13s | <1% bad    warmup ========================               1250/2000 | eta: 12s | <1% bad    warmup =========================              1300/2000 | eta: 11s | <1% bad    warmup ==========================             1350/2000 | eta: 10s | <1% bad    warmup ===========================            1400/2000 | eta: 10s | <1% bad    warmup ============================           1450/2000 | eta:  9s | <1% bad    warmup ============================           1500/2000 | eta:  8s | <1% bad    warmup =============================          1550/2000 | eta:  7s | <1% bad    warmup ==============================         1600/2000 | eta:  6s | <1% bad    warmup ===============================        1650/2000 | eta:  6s | <1% bad    warmup ================================       1700/2000 | eta:  5s | <1% bad    warmup =================================      1750/2000 | eta:  4s | <1% bad    warmup ==================================     1800/2000 | eta:  3s | <1% bad    warmup ===================================    1850/2000 | eta:  2s | <1% bad    warmup ====================================   1900/2000 | eta:  2s | <1% bad    warmup =====================================  1950/2000 | eta:  1s | <1% bad    warmup ====================================== 2000/2000 | eta:  0s | <1% bad
+    ##   sampling                                           0/4000 | eta:  ?s            sampling                                          50/4000 | eta:  1m            sampling =                                       100/4000 | eta:  1m            sampling =                                       150/4000 | eta:  1m            sampling ==                                      200/4000 | eta:  1m            sampling ==                                      250/4000 | eta:  1m            sampling ===                                     300/4000 | eta:  1m            sampling ===                                     350/4000 | eta:  1m            sampling ====                                    400/4000 | eta:  1m            sampling ====                                    450/4000 | eta:  1m            sampling =====                                   500/4000 | eta:  1m            sampling =====                                   550/4000 | eta:  1m            sampling ======                                  600/4000 | eta:  1m            sampling ======                                  650/4000 | eta:  1m            sampling =======                                 700/4000 | eta:  1m            sampling =======                                 750/4000 | eta:  1m            sampling ========                                800/4000 | eta:  1m            sampling ========                                850/4000 | eta:  1m            sampling =========                               900/4000 | eta:  1m            sampling =========                               950/4000 | eta:  1m            sampling ==========                             1000/4000 | eta:  1m            sampling ==========                             1050/4000 | eta: 49s            sampling ==========                             1100/4000 | eta: 48s            sampling ===========                            1150/4000 | eta: 47s            sampling ===========                            1200/4000 | eta: 47s            sampling ============                           1250/4000 | eta: 46s            sampling ============                           1300/4000 | eta: 45s            sampling =============                          1350/4000 | eta: 44s            sampling =============                          1400/4000 | eta: 43s            sampling ==============                         1450/4000 | eta: 42s            sampling ==============                         1500/4000 | eta: 41s            sampling ===============                        1550/4000 | eta: 41s            sampling ===============                        1600/4000 | eta: 40s            sampling ================                       1650/4000 | eta: 39s            sampling ================                       1700/4000 | eta: 38s            sampling =================                      1750/4000 | eta: 37s            sampling =================                      1800/4000 | eta: 36s            sampling ==================                     1850/4000 | eta: 36s            sampling ==================                     1900/4000 | eta: 35s            sampling ===================                    1950/4000 | eta: 34s            sampling ===================                    2000/4000 | eta: 33s            sampling ===================                    2050/4000 | eta: 32s            sampling ====================                   2100/4000 | eta: 31s            sampling ====================                   2150/4000 | eta: 30s            sampling =====================                  2200/4000 | eta: 29s            sampling =====================                  2250/4000 | eta: 29s            sampling ======================                 2300/4000 | eta: 28s            sampling ======================                 2350/4000 | eta: 27s            sampling =======================                2400/4000 | eta: 26s            sampling =======================                2450/4000 | eta: 25s            sampling ========================               2500/4000 | eta: 25s            sampling ========================               2550/4000 | eta: 24s            sampling =========================              2600/4000 | eta: 23s            sampling =========================              2650/4000 | eta: 22s            sampling ==========================             2700/4000 | eta: 21s            sampling ==========================             2750/4000 | eta: 21s            sampling ===========================            2800/4000 | eta: 20s            sampling ===========================            2850/4000 | eta: 19s            sampling ============================           2900/4000 | eta: 18s            sampling ============================           2950/4000 | eta: 17s            sampling ============================           3000/4000 | eta: 17s            sampling =============================          3050/4000 | eta: 16s            sampling =============================          3100/4000 | eta: 15s            sampling ==============================         3150/4000 | eta: 14s            sampling ==============================         3200/4000 | eta: 13s            sampling ===============================        3250/4000 | eta: 12s            sampling ===============================        3300/4000 | eta: 12s            sampling ================================       3350/4000 | eta: 11s            sampling ================================       3400/4000 | eta: 10s            sampling =================================      3450/4000 | eta:  9s            sampling =================================      3500/4000 | eta:  8s            sampling ==================================     3550/4000 | eta:  7s            sampling ==================================     3600/4000 | eta:  7s            sampling ===================================    3650/4000 | eta:  6s            sampling ===================================    3700/4000 | eta:  5s            sampling ====================================   3750/4000 | eta:  4s            sampling ====================================   3800/4000 | eta:  3s            sampling =====================================  3850/4000 | eta:  2s            sampling =====================================  3900/4000 | eta:  2s            sampling ====================================== 3950/4000 | eta:  1s            sampling ====================================== 4000/4000 | eta:  0s
 
 ``` r
 bayesplot::mcmc_trace(m_bbin$draws, regex_pars = c('alpha','beta','lambda'))
@@ -402,12 +402,12 @@ bayesplot::mcmc_trace(m_bbin$draws, regex_pars = c('alpha','beta','lambda'))
 summary(m_bbin$draws)[[1]][1:5,]
 ```
 
-    ##                        Mean         SD     Naive SE Time-series SE
-    ## alpha            0.43541452 0.39168105 0.0030965105   0.0086048185
-    ## SD_s             1.13491801 0.18548142 0.0014663594   0.0031714993
-    ## phi              7.18693542 0.71577404 0.0056586907   0.0066424209
-    ## beta_s_dist_nit  0.90172565 0.07407277 0.0005855967   0.0006727613
-    ## lambda_s_dbo    -0.01755615 0.21035328 0.0016629887   0.0034938885
+    ##                       Mean         SD    Naive SE Time-series SE
+    ## alpha           0.43053924 0.39006455 0.003083731   0.0086472668
+    ## SD_s            1.13367058 0.17794240 0.001406758   0.0027695272
+    ## phi             7.17915318 0.71547145 0.005656298   0.0067491934
+    ## beta_s_dist_nit 0.90335260 0.07359366 0.000581809   0.0006544959
+    ## lambda_s_pH     0.05386084 0.20677573 0.001634706   0.0034388740
 
 ## Predictions and partial effects
 
@@ -421,7 +421,8 @@ from the fitted model using the `predict_gdum()` function.
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness')
 ```
 
-We can compare those with the ones obtained with `adespatial::`
+We can compare those with the ones obtained with `adespatial::` and map
+the values across the river:
 
 ``` r
 u_pred <- data.frame(u_pred, lcbd = adespatial::LCBD.comp(vegan::vegdist(log1p(doubs.spe)))$LCBD)
@@ -473,8 +474,6 @@ ggplot(u_pred, aes(x = lcbd, y = `X50.`/sum(`X50.`))) +
 
 ![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
-And map the values in space
-
 ``` r
 ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
   theme_void() +
@@ -487,7 +486,8 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 ![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 Similarly, we can obtain the expected $u$ values when the site-level
-random effect is set to 0
+random effect is set to 0, indicating the expected site uniqueness given
+the combination of predictors in each site.
 
 ``` r
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness', re = FALSE)
@@ -502,7 +502,8 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 
 ![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
 
-Or when controlling for the environmental gradient (`s_dist_nit`)
+Similarly, we can control for nitrogen concentration (`s_dist_nit`) to
+asses how this pairwise variable changes uniqueness estimates
 
 ``` r
 u_pred <- predict_gdum(m_gaus, response = 'uniqueness', D_new = D, W_new = doubs.env, re = TRUE)
@@ -519,8 +520,8 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 
 ### Predict with new data
 
-It is often useful look to use predictions to visualize the effect of
-individual predictors. This can also be achieved with `predict_gdum()`.
+It is often useful to visualize the effect of individual predictors.
+This can also be achieved with `predict_gdum()`.
 
 ``` r
 # generate new data
@@ -529,7 +530,7 @@ D_new <- t(combn(n, 2)) # n pairwise combinations
 X_new <- data.frame(s_dist_nit = seq(min(X$s_dist_nit), 
                                      max(X$s_dist_nit), 
                                      length.out = nrow(D_new))) # Simulate pairwise predictors
-W_new <- data.frame(s_dbo = rep(mean(doubs.env$s_dbo), n)) # Simulate site-level predictor
+W_new <- data.frame(s_pH = rep(mean(doubs.env$s_pH), n)) # Simulate site-level predictor
 
 # Make predictions
 pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
@@ -549,17 +550,17 @@ ggplot(cbind(pred, X_new), aes(x = s_dist_nit,y = `50%`)) +
 # generate new data
 n = 50
 D_new <- t(combn(n, 2)) # n pairwise combinations
-X_new <- data.frame(s_dist_nit = rep(mean(doubs.env$s_dbo),
+X_new <- data.frame(s_dist_nit = rep(mean(doubs.env$s_pH),
                                      length.out = nrow(D_new))) # Simulate pairwise predictors
-W_new <- data.frame(s_dbo = seq(min(doubs.env$s_dbo),max(doubs.env$s_dbo), length.out = n)) # Simulate site-level predictor
+W_new <- data.frame(s_pH = seq(min(doubs.env$s_pH),max(doubs.env$s_pH), length.out = n)) # Simulate site-level predictor
 
 # Make predictions
 pred <- predict_gdum(fit = m_bbin, X_new = X_new, W_new = W_new, D_new = D_new, 
                      re = FALSE, samples = 5000, response = 'uniqueness')
 
-ggplot(cbind(pred, W_new), aes(x = s_dbo,y = `50%`)) +
+ggplot(cbind(pred, W_new), aes(x = s_pH,y = `50%`)) +
   theme_bw() + 
-  ylab('expected dissimilarity') + 
+  ylab('expected uniqueness (u_i)') + 
   geom_ribbon(aes(ymin = `2.5%`,max = `97.5%`), fill = 'lightblue', alpha = 0.5) + 
   geom_ribbon(aes(ymin = `25%`,max = `75%`), fill = 'steelblue4', alpha = 0.5) + 
   geom_line(colour = 'white', linewidth = 1.5) +
