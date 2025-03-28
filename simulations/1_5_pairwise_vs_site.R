@@ -5,6 +5,8 @@ library(extrafont)
 library(sysfonts)
 library(showtext)
 library(cowplot)
+library(splines)
+library(tidyverse)
 
 # ggplot settings
 theme_set(theme_bw())
@@ -187,8 +189,7 @@ draws7_df <- data.frame(do.call(rbind, m7$draws))
 draws7_df  <- draws7_df[,1:4]
 draws7_df$m <- 'm7'
 
-library(tidyverse)
-library(ggridges)
+
 draws_data <- bind_rows(draws4_df, draws5_df, draws6_df, draws7_df) %>% 
   pivot_longer(-c(m)) %>% na.omit()
 
