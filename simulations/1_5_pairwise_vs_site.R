@@ -121,7 +121,7 @@ diss_m5_plot <- ggplotGrob(ggplot(pred_diss_m5_exp, aes(x = X_e_dis, y = `X50.`)
     scale_y_continuous(breaks = c(0.4, 0.6, 0.8))+
     scale_fill_manual('', values = c('steelblue','lightblue3')) + 
     ylab(expression(bold(E)*"(Z"["ij"]*")") ) +
-    xlab( TeX("x") ))
+    xlab( TeX("\\Delta x") ))
 
 (uniq_plot <- ggplot(rbind(pred_u_m4_exp, pred_u_m5_exp)) + 
     geom_ribbon(aes(ymin = `X2.5.`, ymax = `X97.5.`, x = X_e_uni, y = `X50.`,
@@ -152,7 +152,7 @@ diss_m7_plot <- ggplotGrob(ggplot(pred_diss_m7_exp, aes(x = X_e_dis, y = `X50.`)
                              scale_y_continuous(breaks = c(0.4, 0.6, 0.8))+
                              scale_fill_manual('', values = c('steelblue','lightblue3')) + 
                              ylab(expression(bold(E)*"(Z"["ij"]*")") ) +
-                             xlab( TeX("x") ))
+                             xlab( TeX("\\Delta x") ))
 
 (env_plot <- ggplot(rbind(pred_u_m6_exp, pred_u_m7_exp)) + 
     geom_ribbon(aes(ymin = `X2.5.`, ymax = `X97.5.`, x = X_env, y = `X50.`,
