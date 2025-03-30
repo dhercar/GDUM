@@ -1,11 +1,11 @@
 ---
-title: "Untitled"
+title: "GDUM: Simultaneusly estimating community dissimilarity and uniqueness"
 output: github_document
 ---
 
 # Fitting GDUMs in `greta`
 
-Here we show how to fit and inspect Generalized Dissimilarity Uniqueness Models (DGUM) using `greta`. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](link to DOI). 
+Here we show how to fit and inspect Generalized Dissimilarity Uniqueness Models (DGUM) using `greta`. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](https://github.com/dhercar/GDUM/tree/main/Functions). 
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 # Load functions
@@ -38,12 +38,10 @@ doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/ma
 doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', 
                       row.names = 1)
 ```
-
 doubs.spe
 ```{r, echo = FALSE}
 kableExtra::kable(head(doubs.spe))
 ```
-
 doubs.env
 ```{r, echo = FALSE}
 kableExtra::kable(head(doubs.env))
@@ -81,7 +79,6 @@ kableExtra::kable(head(Y_bin))
 Y_bray <- make_y_df(com = doubs.spe, trans = log1p)
 kableExtra::kable(head(Y_bray))
 ```
-
 Outputs from `make_y_df()` and `make_x_df()` contain two columns that indicate which pair of samples are compared in each row: `s1` and `s2`. These columns should be consistent across datasets.
 
 ```{r}
@@ -95,7 +92,6 @@ We provide a function `fit_gdum()` to help built GDUMs in `greta`. By deafault, 
 ```{r}
 X$s_dist_nit <- scale(X$dist_nit)
 doubs.env$s_pH <- scale(doubs.env$pH)
-
 ```
 
 In addition, a design matrix `D` indicating which sites are compared in each row is required to match dissimilarities with pairwise- and site-level predictor. 
@@ -103,7 +99,6 @@ In addition, a design matrix `D` indicating which sites are compared in each row
 ```{r}
 D <- X[,c('s1','s2')]
 ```
-
 
 ### Gaussian distribution
 
@@ -124,24 +119,25 @@ m_gaus <- fit_gdum(Y = Y_bray[,3], # Dissimilarities
 
 `Lmin` and `Lmax` are parameters passed to `greta::hmc()`. See [greta-stats.org/reference/samplers](https://greta-stats.org/reference/samplers) for more information.
 
-We can explore MCMC chains using functions in `coda` and `bayesplot` functions. MCMC chains are in `m_gaus$draws`. 
+We can explore MCMC chains using functions in `coda` and `bayesplot`. MCMC chains are in `m_gaus$draws`. 
 
 ```{r}
 bayesplot::mcmc_trace(m_gaus$draws, regex_pars = c('alpha','beta','lambda'))
 ```
 
 - `alpha` is the global intercept
-- `beta_X` are the coefficients for oairwise-level predictors
+- `beta_X` are the coefficients for pairwise-level predictors
 - `labmda_X` are the coefficients for site-level predictors
 
-In additin, `coda::gelman.diag()` can be used to compute the [Gelman-Rubin](https://en.wikipedia.org/wiki/Gelman-Rubin_statistic) statistic
+In addition, `coda::gelman.diag()` can be used to compute the [Gelman-Rubin](https://en.wikipedia.org/wiki/Gelman-Rubin_statistic) statistic
+
 ```{r}
 coda::gelman.diag(m_gaus$draws)
 ```
 
 In our case, all values are relatively small ($\geq 1.01$) indicating that chains have succesfully converged. 
 
-The `summary` of the draws provides the estimated value of each model parameter 
+The `summary` of the draws provides the estimated value of each model parameter and credibility intervals
 ```{r}
 summary(m_gaus$draws)[[1]][1:5,]
 ```
@@ -153,7 +149,7 @@ summary(m_gaus$draws)[[1]][1:5,]
 
 #### Beta distribution
 
-Note that the beta distribution does not allow for 0s or 1s. For the sake of this example, we replace those values with `0.001` and `0.999` respectively. 
+Note that the beta distribution does not allow for 0s or 1s. For this example, we replace those values with `0.001` and `0.999` respectively. 
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 Y_bray$diss2 <- ifelse(Y_bray$diss == 0, 0.001, Y_bray$diss)
@@ -179,10 +175,9 @@ summary(m_beta$draws)[[1]][1:5,]
 
 Instead of `sigma`, `phi` is the scale parameter of the beta distribution. The larger the value of `phi`, the narrower the distribution gets around the estimated dissimilarity. 
 
-
 #### Binomial distribution
 
-The binomial distribution can be used when the dissimilarity index corresponds to a proportion of shared of unshared items, such as the Sørensen–Dice, Jaccard or Bray-Curtis dissimilarity indices. Both the numerator and the denominator need to be supplied independently:
+The binomial distribution can be used when the dissimilarity index corresponds to a proportion of shared and unshared items, such as the Sørensen–Dice, Jaccard or Bray-Curtis dissimilarity indices. Both the numerator and the denominator need to be supplied independently:
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
@@ -284,10 +279,10 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
 
 ```
 
-Similarly, we can control for nitrogen concentration (`s_dist_nit`) to asses how this pairwise variable changes uniqueness estimates
+We can also control for nitrogen concentration (`s_dist_nit`) to asses the importance of this pairwise variable in determining uniqueness.
 
 ```{r}
-u_pred <- predict_gdum(m_gaus, response = 'uniqueness', D_new = D, W_new = doubs.env, re = TRUE)
+u_pred <- predict_gdum(m_gaus, response = 'uniqueness', D_new = D, W_new = doubs.env, re = TRUE) 
 u_pred <- data.frame(u_pred)
 ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) + 
   theme_void() +
@@ -297,7 +292,6 @@ ggplot(cbind(u_pred, doubs.spa) ,aes( x = x, y = y)) +
   scale_size_continuous('u_i', range = c(1,7))
 
 ```
-
 
 ### Predict with new data
 
