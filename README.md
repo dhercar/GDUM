@@ -1,11 +1,11 @@
-Untitled
+GDUM: Simultaneusly estimating community dissimilarity and uniqueness
 ================
 
 # Fitting GDUMs in `greta`
 
 Here we show how to fit and inspect Generalized Dissimilarity Uniqueness
 Models (DGUM) using `greta`. We provide some helper functions to
-construct the models and generate predictions.This scripts assumes that
+construct the models and generate predictions. This scripts assumes that
 a folder named `functions` exists in the working directory with the
 helper functions provided [here](link%20to%20DOI).
 
