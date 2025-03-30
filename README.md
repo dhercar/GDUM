@@ -1,4 +1,4 @@
-GDUM: Simultaneusly estimating community dissimilarity and uniqueness
+GDUM: Simultaneusly modelling community dissimilarity and uniqueness
 ================
 
 This repository contains the code associated with the manuscript
