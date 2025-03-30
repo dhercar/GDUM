@@ -3,6 +3,18 @@ title: "GDUM: Simultaneusly estimating community dissimilarity and uniqueness"
 output: github_document
 ---
 
+This repository contains the code associated with the manuscript Hernandez-Carrasco et al. (2025). 
+
+- `functions` contains custom helper functions used in other scripts.
+- `simulations`, `case_study_doubs`, and `case_study_atlanticforest` contain scripts to replicate the analyses presented in the manuscript
+- `SI` contains code to replicate the figures in Supplementary Information
+- `models` contains the models fitted to simulated data
+- `plots` contains the figures in the main text
+
+Below we include a short tutorial showing how to fitting GDUMs using the wrapping functions provided in this repository. 
+
+NOTE: For transparency, our scripts do not use some of the helper functions described below. Instead, we provide the full code used to fit each model and generate predictions. 
+
 # Fitting GDUMs in `greta`
 
 Here we show how to fit and inspect Generalized Dissimilarity Uniqueness Models (DGUM) using `greta`. We provide some helper functions to construct the models and generate predictions.This scripts assumes that a folder named `functions` exists in the working directory with the helper functions provided [here](https://github.com/dhercar/GDUM/tree/main/Functions). 

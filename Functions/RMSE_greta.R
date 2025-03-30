@@ -15,7 +15,7 @@ RMSE_greta <- function(observed,
   }
   
   residual <- sweep(estimated, 2, observed) * -1
-  RMSE <- apply(residual, 1, function(x) sqrt(sum((abs(x)^2))/length(observed)))
+  RMSE <- apply(residual, 1, function(x) sqrt(sum((x^2))/length(observed)))
   
   if(summary == TRUE){
     return(quantile(RMSE, probs = summary_quantiles))

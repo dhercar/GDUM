@@ -90,7 +90,7 @@ plot_grid(
     geom_point(shape = 21) + 
     theme(aspect.ratio = 1) +
     ylab('E(LCBD)') + 
-    ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij} = \\bar{\\Delta x_{ij}}, w_i, \\alpha_i = 0$')) +
+    ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij} = \\bar{\\Delta x, w_i, \\alpha_i = 0$')) +
     ylim(range(c(u$X50./sum( u$X50.) , u$X50_no_re/sum( u$X50_no_re), u$X50_no_x/sum( u$X50_no_x)))) +
     geom_abline(),
 ggplot(u, aes(x = LCBD, y = X50_no_re/sum( X50_no_re) )) + 

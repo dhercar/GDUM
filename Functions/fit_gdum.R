@@ -140,7 +140,6 @@ fit_gdum <- function(Y, # Response (dissimilarity)
     }
   }
   
-  
   result <- list(
     model = model_obj,
     draws = draws,
