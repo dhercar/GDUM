@@ -18,7 +18,9 @@ set.seed(1)
 
 # plotting preferences
 theme_set(theme_bw())
-theme_update(panel.grid = element_blank(), text = element_text(size = 7))
+theme_update(panel.grid = element_blank(), text = element_text(size = 7),
+             panel.background = element_rect(fill = 'grey90', colour = 'transparent'),
+             panel.border = element_rect(colour = 'transparent'))
 set.seed(1)
 
 # ---- SIMULATED DATA ----
@@ -90,23 +92,23 @@ plot_grid(
     geom_point(shape = 21) + 
     theme(aspect.ratio = 1) +
     ylab('E(LCBD)') + 
-    ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij} = \\bar{\\Delta x, w_i, \\alpha_i = 0$')) +
+    ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij} = \\bar{\\Delta x}, w_i, \\alpha_i = 0$')) +
     ylim(range(c(u$X50./sum( u$X50.) , u$X50_no_re/sum( u$X50_no_re), u$X50_no_x/sum( u$X50_no_x)))) +
-    geom_abline(),
+    geom_abline(lty = 5),
 ggplot(u, aes(x = LCBD, y = X50_no_re/sum( X50_no_re) )) + 
   geom_point(shape = 21) + 
   theme(aspect.ratio = 1) +
   ylab('E(LCBD)') + 
   ylim(range(c(u$X50./sum( u$X50.) , u$X50_no_re/sum( u$X50_no_re), u$X50_no_x/sum( u$X50_no_x)))) +
   ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij}, w_i, \\alpha_i = 0$')) +
-  geom_abline(),
+  geom_abline(lty = 5),
 ggplot(u, aes(x = LCBD, y = X50./sum( X50.) )) + 
   geom_point(shape = 21) + 
   ylab('E(LCBD)') + 
   theme(aspect.ratio = 1) +
   ylim(range(c(u$X50./sum( u$X50.) , u$X50_no_re/sum( u$X50_no_re), u$X50_no_x/sum( u$X50_no_x)))) +
   ggtitle(TeX('$E(LCBD_i) | \\Delta x_{ij}, w_i, \\alpha_i$')) +
-  geom_abline(), labels = c('A', 'B', 'C'),
+  geom_abline(lty = 5), labels = c('A', 'B', 'C'),
 ncol = 3)
 
 ggsave('./SI/one_to_one_plot.png', width = 19, height = 8, dpi = 600, units = 'cm')
