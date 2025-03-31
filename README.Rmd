@@ -1,5 +1,5 @@
 ---
-title: "GDUM: Simultaneusly estimating community dissimilarity and uniqueness"
+title: "GDUM: Simultaneusly modelling community dissimilarity and uniqueness"
 output: github_document
 ---
 
