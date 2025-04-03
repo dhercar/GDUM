@@ -25,7 +25,6 @@ theme_update(panel.grid = element_blank(), text = element_text(size = 7),
 set.seed(1)
 
 # ---- SIMULATED DATA ----
-
 # Set parameters 
 n_sites = 50 # Number on unique sites / samples
 n_sp = 100 # Unique species in species pool
@@ -42,6 +41,7 @@ env_data <- sim_spatial_data( n_sites = n_sites,
                               cov_pars = c(1, 0.1),
                               n_neighbours = n_neighbours,
                               seed = 1)
+
 #  SIMULATE COMMUNITY
 com_data <- sim_com_data(n_sp = n_sp,
                          isolation = env_data$data$isolation,
@@ -78,15 +78,17 @@ m0 <- fit_gdum(Y = Y,
                warmup = 2000)
 
 # Check chains
-bayesplot::mcmc_trace(m0$draws, regex_pars = c('beta', 'lambda', 'SD', 'sigma', 'alpha'))
+mcmc_trace(m0$draws, regex_pars = c('beta', 'lambda', 'SD', 'sigma', 'alpha'))
 gelman.diag(m0$draws)
 
+# Expected u_i (= SS_i for gaussian distribution)
 u <- data.frame(predict_gdum(m0, response = 'uniqueness'))
 u$X50_no_re <- t(predict_gdum(m0, response = 'uniqueness', re = FALSE, quantiles = c(0.5)))
 u$X50_no_x <- t(predict_gdum(m0, W_new = W, response = 'uniqueness', re = FALSE, quantiles = c(0.5)))
- 
-u$LCBD <- adespatial::LCBD.comp(vegdist(com_data$com_data))$LCBD
-u$SS <- u$LCBD*adespatial::LCBD.comp(vegdist(com_data$com_data))$beta['SStotal']
+
+# Empirical LCBD and SS (LCBD*SS_total)
+u$LCBD <- LCBD.comp(vegdist(com_data$com_data))$LCBD
+u$SS <- u$LCBD*LCBD.comp(vegdist(com_data$com_data))$beta['SStotal']
 
 plot_grid(
   ggplot(u, aes(x = LCBD, y = X50_no_x/sum( X50_no_x) )) + 
@@ -112,4 +114,4 @@ ggplot(u, aes(x = LCBD, y = X50./sum( X50.) )) +
   geom_abline(lty = 5), labels = c('A', 'B', 'C'),
 ncol = 3)
 
-ggsave('./SI/one_to_one_plot.png', width = 19, height = 8, dpi = 600, units = 'cm')
+ggsave('./SI/one_to_one_plot.svg', width = 19, height = 8, dpi = 600, units = 'cm')
