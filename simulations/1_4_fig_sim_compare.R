@@ -253,7 +253,7 @@ pred_u_m3 <- with(m3, {
     geom_line(colour = 'darkorange3', size = 1) + 
     ylab(TeX("uniqueness ( $u_{i}$)")) +
     xlab('w (sd units)') +
-    ylim(-0.5, 0.9)+
+    ylim(-0.5, 0.9) +
     geom_point(data = pred_u_m3,
                aes(x = X_iso, y = `X50.`), shape = 21, col = 'grey30') + 
     annotate("text", -Inf, Inf, label = "m3", colour = 'darkorange', hjust = -0.5, vjust = 2, size = 3) +
@@ -395,8 +395,8 @@ r2_data <- rbind(data.frame( r2 = r2_m1, m = 'm1', comp = 'pairwise dissimilarit
                  data.frame( r2 = r2_m3, m = 'm3', comp = 'pairwise dissimilarity'),
                  data.frame( r2 = r2_u_m1, m = 'm1', comp = 'site uniqueness'),
                  data.frame( r2 = r2_m3, m = 'm3', comp = 'site uniqueness'),
-                 data.frame( r2 = r2_u_m2_1, m = 'm2.1', comp ='site uniqueness'),
-                 data.frame( r2 = r2_u_m2_2, m = 'm2.2', comp ='site uniqueness'))
+                 data.frame( r2 = r2_u_m2_1, m = 'm2.1', comp = 'site uniqueness'),
+                 data.frame( r2 = r2_u_m2_2, m = 'm2.2', comp = 'site uniqueness'))
 
 # ---- VARPART ----
 pred_m3_full <- with(m3, {
@@ -514,7 +514,12 @@ var_comp = data.frame(component = c('01_pairwise', '03_site'),
           aspect.ratio = 1,
           text = element_text(size = 7),
           axis.title.x = element_blank(),
-          strip.background = element_blank()), ncol =2, rel_widths = c(2,3),
+          strip.background = element_blank()), ncol =  2, rel_widths = c(2,3),
   labels = c('C', 'D'), label_size = 9), ncol = 1, label_size = 9, rel_heights = c(2.5,1)))
 
-ggsave('plots/simulations.png', sim_plot, width = 15, height = 15, dpi = 600, units = 'cm')
+ggsave('plots/simulations.svg',
+       sim_plot, 
+       width = 15, 
+       height = 15, 
+       dpi = 600, 
+       units = 'cm')
