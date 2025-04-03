@@ -43,6 +43,7 @@ library(coda)
 library(bayesplot)
 library(ggplot2)
 library(tidyverse)
+library(ade4)
 ```
 
 Note that the package `greta` requires some additional dependencies.
@@ -58,46 +59,915 @@ Doubs river.
 
 ``` r
 # Load datasets
-doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', 
-                      row.names = 1)
-doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', 
-                      row.names = 1)
-doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', 
-                      row.names = 1)
+data(doubs)
+doubs.spe <- doubs$fish
+doubs.env <- doubs$env
+doubs.spa <- doubs$xy
 ```
 
 doubs.spe
-
-| CHA | TRU | VAI | LOC | OMB | BLA | HOT | TOX | VAN | CHE | BAR | SPI | GOU | BRO | PER | BOU | PSO | ROT | CAR | TAN | BCO | PCH | GRE | GAR | BBO | ABL | ANG |
-|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|
-|   0 |   3 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |
-|   0 |   5 |   4 |   3 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |
-|   0 |   5 |   5 |   5 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   1 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |
-|   0 |   4 |   5 |   5 |   0 |   0 |   0 |   0 |   0 |   1 |   0 |   0 |   1 |   2 |   2 |   0 |   0 |   0 |   0 |   1 |   0 |   0 |   0 |   0 |   0 |   0 |   0 |
-|   0 |   2 |   3 |   2 |   0 |   0 |   0 |   0 |   5 |   2 |   0 |   0 |   2 |   4 |   4 |   0 |   0 |   2 |   0 |   3 |   0 |   0 |   0 |   5 |   0 |   0 |   0 |
-|   0 |   3 |   4 |   5 |   0 |   0 |   0 |   0 |   1 |   2 |   0 |   0 |   1 |   1 |   1 |   0 |   0 |   0 |   0 |   2 |   0 |   0 |   0 |   1 |   0 |   0 |   0 |
-
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+Cogo
+</th>
+<th style="text-align:right;">
+Satr
+</th>
+<th style="text-align:right;">
+Phph
+</th>
+<th style="text-align:right;">
+Neba
+</th>
+<th style="text-align:right;">
+Thth
+</th>
+<th style="text-align:right;">
+Teso
+</th>
+<th style="text-align:right;">
+Chna
+</th>
+<th style="text-align:right;">
+Chto
+</th>
+<th style="text-align:right;">
+Lele
+</th>
+<th style="text-align:right;">
+Lece
+</th>
+<th style="text-align:right;">
+Baba
+</th>
+<th style="text-align:right;">
+Spbi
+</th>
+<th style="text-align:right;">
+Gogo
+</th>
+<th style="text-align:right;">
+Eslu
+</th>
+<th style="text-align:right;">
+Pefl
+</th>
+<th style="text-align:right;">
+Rham
+</th>
+<th style="text-align:right;">
+Legi
+</th>
+<th style="text-align:right;">
+Scer
+</th>
+<th style="text-align:right;">
+Cyca
+</th>
+<th style="text-align:right;">
+Titi
+</th>
+<th style="text-align:right;">
+Abbr
+</th>
+<th style="text-align:right;">
+Icme
+</th>
+<th style="text-align:right;">
+Acce
+</th>
+<th style="text-align:right;">
+Ruru
+</th>
+<th style="text-align:right;">
+Blbj
+</th>
+<th style="text-align:right;">
+Alal
+</th>
+<th style="text-align:right;">
+Anan
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
 doubs.env
-
-|  das | alt |  pen |  deb |  pH | dur |  pho |  nit |  amm |  oxy | dbo |
-|-----:|----:|-----:|-----:|----:|----:|-----:|-----:|-----:|-----:|----:|
-|  0.3 | 934 | 48.0 | 0.84 | 7.9 |  45 | 0.01 | 0.20 | 0.00 | 12.2 | 2.7 |
-|  2.2 | 932 |  3.0 | 1.00 | 8.0 |  40 | 0.02 | 0.20 | 0.10 | 10.3 | 1.9 |
-| 10.2 | 914 |  3.7 | 1.80 | 8.3 |  52 | 0.05 | 0.22 | 0.05 | 10.5 | 3.5 |
-| 18.5 | 854 |  3.2 | 2.53 | 8.0 |  72 | 0.10 | 0.21 | 0.00 | 11.0 | 1.3 |
-| 21.5 | 849 |  2.3 | 2.64 | 8.1 |  84 | 0.38 | 0.52 | 0.20 |  8.0 | 6.2 |
-| 32.4 | 846 |  3.2 | 2.86 | 7.9 |  60 | 0.20 | 0.15 | 0.00 | 10.2 | 5.3 |
-
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+dfs
+</th>
+<th style="text-align:right;">
+alt
+</th>
+<th style="text-align:right;">
+slo
+</th>
+<th style="text-align:right;">
+flo
+</th>
+<th style="text-align:right;">
+pH
+</th>
+<th style="text-align:right;">
+har
+</th>
+<th style="text-align:right;">
+pho
+</th>
+<th style="text-align:right;">
+nit
+</th>
+<th style="text-align:right;">
+amm
+</th>
+<th style="text-align:right;">
+oxy
+</th>
+<th style="text-align:right;">
+bdo
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+934
+</td>
+<td style="text-align:right;">
+6.176
+</td>
+<td style="text-align:right;">
+84
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+45
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+122
+</td>
+<td style="text-align:right;">
+27
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+932
+</td>
+<td style="text-align:right;">
+3.434
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+103
+</td>
+<td style="text-align:right;">
+19
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+102
+</td>
+<td style="text-align:right;">
+914
+</td>
+<td style="text-align:right;">
+3.638
+</td>
+<td style="text-align:right;">
+180
+</td>
+<td style="text-align:right;">
+83
+</td>
+<td style="text-align:right;">
+52
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+105
+</td>
+<td style="text-align:right;">
+35
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+185
+</td>
+<td style="text-align:right;">
+854
+</td>
+<td style="text-align:right;">
+3.497
+</td>
+<td style="text-align:right;">
+253
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+72
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+110
+</td>
+<td style="text-align:right;">
+13
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+215
+</td>
+<td style="text-align:right;">
+849
+</td>
+<td style="text-align:right;">
+3.178
+</td>
+<td style="text-align:right;">
+264
+</td>
+<td style="text-align:right;">
+81
+</td>
+<td style="text-align:right;">
+84
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+52
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+62
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+324
+</td>
+<td style="text-align:right;">
+846
+</td>
+<td style="text-align:right;">
+3.497
+</td>
+<td style="text-align:right;">
+286
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+102
+</td>
+<td style="text-align:right;">
+53
+</td>
+</tr>
+</tbody>
+</table>
 doubs.spa
-
-|   x |   y |
-|----:|----:|
-|  88 |   7 |
-|  94 |  14 |
-| 102 |  18 |
-| 100 |  28 |
-| 106 |  39 |
-| 112 |  51 |
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+x
+</th>
+<th style="text-align:right;">
+y
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+88
+</td>
+<td style="text-align:right;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+94
+</td>
+<td style="text-align:right;">
+14
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+102
+</td>
+<td style="text-align:right;">
+18
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+28
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+106
+</td>
+<td style="text-align:right;">
+39
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+112
+</td>
+<td style="text-align:right;">
+51
+</td>
+</tr>
+</tbody>
+</table>
 
 ## Preparing data
 
@@ -114,14 +984,319 @@ X <- make_x_df(env = doubs.env,
 kableExtra::kable(head(X))
 ```
 
-|     |  s1 |  s2 | dist_das | dist_alt | dist_pen | dist_deb | dist_pH | dist_dur | dist_pho | dist_nit | dist_amm | dist_oxy | dist_dbo |
-|:----|----:|----:|---------:|---------:|---------:|---------:|--------:|---------:|---------:|---------:|---------:|---------:|---------:|
-| 2   |   2 |   1 |      1.9 |        2 |     45.0 |     0.16 |     0.1 |        5 |     0.01 |     0.00 |     0.10 |      1.9 |      0.8 |
-| 3   |   3 |   1 |      9.9 |       20 |     44.3 |     0.96 |     0.4 |        7 |     0.04 |     0.02 |     0.05 |      1.7 |      0.8 |
-| 4   |   4 |   1 |     18.2 |       80 |     44.8 |     1.69 |     0.1 |       27 |     0.09 |     0.01 |     0.00 |      1.2 |      1.4 |
-| 5   |   5 |   1 |     21.2 |       85 |     45.7 |     1.80 |     0.2 |       39 |     0.37 |     0.32 |     0.20 |      4.2 |      3.5 |
-| 6   |   6 |   1 |     32.1 |       88 |     44.8 |     2.02 |     0.0 |       15 |     0.19 |     0.05 |     0.00 |      2.0 |      2.6 |
-| 7   |   7 |   1 |     36.5 |       93 |     41.4 |     3.16 |     0.2 |       43 |     0.06 |     0.05 |     0.00 |      1.1 |      0.5 |
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+s1
+</th>
+<th style="text-align:right;">
+s2
+</th>
+<th style="text-align:right;">
+dist_dfs
+</th>
+<th style="text-align:right;">
+dist_alt
+</th>
+<th style="text-align:right;">
+dist_slo
+</th>
+<th style="text-align:right;">
+dist_flo
+</th>
+<th style="text-align:right;">
+dist_pH
+</th>
+<th style="text-align:right;">
+dist_har
+</th>
+<th style="text-align:right;">
+dist_pho
+</th>
+<th style="text-align:right;">
+dist_nit
+</th>
+<th style="text-align:right;">
+dist_amm
+</th>
+<th style="text-align:right;">
+dist_oxy
+</th>
+<th style="text-align:right;">
+dist_bdo
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+2.742
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+99
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+2.538
+</td>
+<td style="text-align:right;">
+96
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+182
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+2.679
+</td>
+<td style="text-align:right;">
+169
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+14
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+212
+</td>
+<td style="text-align:right;">
+85
+</td>
+<td style="text-align:right;">
+2.998
+</td>
+<td style="text-align:right;">
+180
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+42
+</td>
+<td style="text-align:right;">
+35
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+321
+</td>
+<td style="text-align:right;">
+88
+</td>
+<td style="text-align:right;">
+2.679
+</td>
+<td style="text-align:right;">
+202
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+26
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+7
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+265
+</td>
+<td style="text-align:right;">
+93
+</td>
+<td style="text-align:right;">
+1.971
+</td>
+<td style="text-align:right;">
+316
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+</tbody>
+</table>
 
 `make_y_df()` computes pairwise dissimilarities and returns a data frame
 in long format. Different options are available, including:
@@ -141,14 +1316,130 @@ Y_bin <- make_y_df(com = doubs.spe, method = 'sorensen', num_den = TRUE)
 kableExtra::kable(head(Y_bin))
 ```
 
-|     |  s1 |  s2 | num_sor | den_sor |
-|:----|----:|----:|--------:|--------:|
-| 2   |   2 |   1 |       2 |       4 |
-| 3   |   3 |   1 |       3 |       5 |
-| 4   |   4 |   1 |       7 |       9 |
-| 5   |   5 |   1 |      10 |      12 |
-| 6   |   6 |   1 |       9 |      11 |
-| 7   |   7 |   1 |       4 |       6 |
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+s1
+</th>
+<th style="text-align:right;">
+s2
+</th>
+<th style="text-align:right;">
+num_sor
+</th>
+<th style="text-align:right;">
+den_sor
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+7
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+6
+</td>
+</tr>
+</tbody>
+</table>
 
 ``` r
 Y_bray <- make_y_df(com = doubs.spe, trans = log1p)
@@ -161,14 +1452,109 @@ Y_bray <- make_y_df(com = doubs.spe, trans = log1p)
 kableExtra::kable(head(Y_bray))
 ```
 
-|     |  s1 |  s2 |      diss |
-|:----|----:|----:|----------:|
-| 2   |   2 |   1 | 0.5509095 |
-| 3   |   3 |   1 | 0.6280761 |
-| 4   |   4 |   1 | 0.7446012 |
-| 5   |   5 |   1 | 0.8664653 |
-| 6   |   6 |   1 | 0.7657643 |
-| 7   |   7 |   1 | 0.6519273 |
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+s1
+</th>
+<th style="text-align:right;">
+s2
+</th>
+<th style="text-align:right;">
+diss
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.5509095
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.6280761
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.7446012
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.8664653
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.7657643
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+7
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.6519273
+</td>
+</tr>
+</tbody>
+</table>
 
 Outputs from `make_y_df()` and `make_x_df()` contain two columns that
 indicate which pair of samples are compared in each row: `s1` and `s2`.
@@ -248,7 +1634,7 @@ coda::gelman.diag(m_gaus$draws)
     ## alpha                    1       1.00
     ## SD_s                     1       1.00
     ## sigma                    1       1.01
-    ## beta_s_dist_nit          1       1.00
+    ## beta_s_dist_nit          1       1.01
     ## lambda_s_pH              1       1.00
     ## e_s[1,1]                 1       1.00
     ## e_s[2,1]                 1       1.00
@@ -263,7 +1649,7 @@ coda::gelman.diag(m_gaus$draws)
     ## e_s[11,1]                1       1.00
     ## e_s[12,1]                1       1.00
     ## e_s[13,1]                1       1.00
-    ## e_s[14,1]                1       1.01
+    ## e_s[14,1]                1       1.00
     ## e_s[15,1]                1       1.00
     ## e_s[16,1]                1       1.00
     ## e_s[17,1]                1       1.00
@@ -271,7 +1657,7 @@ coda::gelman.diag(m_gaus$draws)
     ## e_s[19,1]                1       1.00
     ## e_s[20,1]                1       1.00
     ## e_s[21,1]                1       1.00
-    ## e_s[22,1]                1       1.01
+    ## e_s[22,1]                1       1.00
     ## e_s[23,1]                1       1.00
     ## e_s[24,1]                1       1.00
     ## e_s[25,1]                1       1.00
@@ -296,11 +1682,11 @@ summary(m_gaus$draws)[[1]][1:5,]
 ```
 
     ##                        Mean          SD     Naive SE Time-series SE
-    ## alpha           0.629882142 0.051003526 4.032183e-04   5.968936e-04
-    ## SD_s            0.135112214 0.020880990 1.650787e-04   2.676229e-04
-    ## sigma           0.187578585 0.006761673 5.345572e-05   8.728534e-05
-    ## beta_s_dist_nit 0.166954539 0.013105565 1.036086e-04   1.678528e-04
-    ## lambda_s_pH     0.008071676 0.026123290 2.065227e-04   2.397642e-04
+    ## alpha           0.629183218 0.049884079 3.943683e-04   0.0005742759
+    ## SD_s            0.135382297 0.020951126 1.656332e-04   0.0002822945
+    ## sigma           0.187496157 0.006595451 5.214162e-05   0.0001280692
+    ## beta_s_dist_nit 0.167523560 0.013370165 1.057004e-04   0.0001688428
+    ## lambda_s_pH     0.008403212 0.026352006 2.083309e-04   0.0002723175
 
 - `sigma` is the standard deviation of the normally distributed
   residuals
@@ -337,11 +1723,11 @@ summary(m_beta$draws)[[1]][1:5,]
 ```
 
     ##                       Mean         SD     Naive SE Time-series SE
-    ## alpha           0.65830955 0.28777637 0.0022750719   0.0032740946
-    ## SD_s            0.81462620 0.12025762 0.0009507200   0.0015741483
-    ## phi             4.97920309 0.35145430 0.0027784902   0.0081228368
-    ## beta_s_dist_nit 0.81246401 0.06458139 0.0005105607   0.0006183887
-    ## lambda_s_pH     0.04346403 0.15216096 0.0012029380   0.0014451408
+    ## alpha           0.65221871 0.29190857 0.0023077398   0.0034829405
+    ## SD_s            0.81616702 0.12053670 0.0009529263   0.0015551224
+    ## phi             4.99372515 0.34686885 0.0027422390   0.0064916050
+    ## beta_s_dist_nit 0.81226907 0.06682117 0.0005282677   0.0006675067
+    ## lambda_s_pH     0.04376622 0.15518764 0.0012268660   0.0015043076
 
 Instead of `sigma`, `phi` is the scale parameter of the beta
 distribution. The larger the value of `phi`, the narrower the
@@ -375,10 +1761,10 @@ summary(m_bin$draws)[[1]][1:4,]
 ```
 
     ##                       Mean         SD     Naive SE Time-series SE
-    ## alpha           0.57446869 0.41928481 0.0033147374   0.0256615531
-    ## SD_s            1.32487658 0.20056531 0.0015856080   0.0077188083
-    ## beta_s_dist_nit 0.95495893 0.03989445 0.0003153933   0.0006919637
-    ## lambda_s_pH     0.06518421 0.24365061 0.0019262272   0.0116601073
+    ## alpha           0.52592817 0.44535337 0.0035208276   0.0233156200
+    ## SD_s            1.31398757 0.20012935 0.0015821614   0.0064835361
+    ## beta_s_dist_nit 0.95407818 0.04040704 0.0003194457   0.0004990896
+    ## lambda_s_pH     0.07012688 0.23688964 0.0018727770   0.0091406112
 
 The binomial distribution does not contain any scale parameter.
 
@@ -403,12 +1789,12 @@ m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
          Lmax = 15)
 ```
 
-    ## running 4 chains simultaneously on up to 24 cores
+    ## running 4 chains simultaneously on up to 16 cores
 
     ## 
 
-    ##     warmup                                           0/2000 | eta:  ?s              warmup =                                        50/2000 | eta:  1m              warmup ==                                      100/2000 | eta: 41s              warmup ===                                     150/2000 | eta: 36s              warmup ====                                    200/2000 | eta: 32s              warmup =====                                   250/2000 | eta: 29s              warmup ======                                  300/2000 | eta: 28s              warmup =======                                 350/2000 | eta: 26s              warmup ========                                400/2000 | eta: 25s              warmup =========                               450/2000 | eta: 24s              warmup ==========                              500/2000 | eta: 23s              warmup ==========                              550/2000 | eta: 22s              warmup ===========                             600/2000 | eta: 21s              warmup ============                            650/2000 | eta: 21s              warmup =============                           700/2000 | eta: 20s              warmup ==============                          750/2000 | eta: 19s              warmup ===============                         800/2000 | eta: 18s              warmup ================                        850/2000 | eta: 17s | <1% bad    warmup =================                       900/2000 | eta: 17s | <1% bad    warmup ==================                      950/2000 | eta: 16s | <1% bad    warmup ===================                    1000/2000 | eta: 15s | <1% bad    warmup ====================                   1050/2000 | eta: 14s | <1% bad    warmup =====================                  1100/2000 | eta: 13s | <1% bad    warmup ======================                 1150/2000 | eta: 13s | <1% bad    warmup =======================                1200/2000 | eta: 12s | <1% bad    warmup ========================               1250/2000 | eta: 11s | <1% bad    warmup =========================              1300/2000 | eta: 10s | <1% bad    warmup ==========================             1350/2000 | eta: 10s | <1% bad    warmup ===========================            1400/2000 | eta:  9s | <1% bad    warmup ============================           1450/2000 | eta:  8s | <1% bad    warmup ============================           1500/2000 | eta:  7s | <1% bad    warmup =============================          1550/2000 | eta:  7s | <1% bad    warmup ==============================         1600/2000 | eta:  6s | <1% bad    warmup ===============================        1650/2000 | eta:  5s | <1% bad    warmup ================================       1700/2000 | eta:  4s | <1% bad    warmup =================================      1750/2000 | eta:  4s | <1% bad    warmup ==================================     1800/2000 | eta:  3s | <1% bad    warmup ===================================    1850/2000 | eta:  2s | <1% bad    warmup ====================================   1900/2000 | eta:  1s | <1% bad    warmup =====================================  1950/2000 | eta:  1s | <1% bad    warmup ====================================== 2000/2000 | eta:  0s | <1% bad
-    ##   sampling                                           0/4000 | eta:  ?s            sampling                                          50/4000 | eta:  1m            sampling =                                       100/4000 | eta:  1m            sampling =                                       150/4000 | eta:  1m            sampling ==                                      200/4000 | eta:  1m            sampling ==                                      250/4000 | eta:  1m            sampling ===                                     300/4000 | eta:  1m            sampling ===                                     350/4000 | eta:  1m            sampling ====                                    400/4000 | eta:  1m            sampling ====                                    450/4000 | eta:  1m            sampling =====                                   500/4000 | eta:  1m            sampling =====                                   550/4000 | eta:  1m            sampling ======                                  600/4000 | eta:  1m            sampling ======                                  650/4000 | eta:  1m            sampling =======                                 700/4000 | eta:  1m            sampling =======                                 750/4000 | eta:  1m            sampling ========                                800/4000 | eta:  1m            sampling ========                                850/4000 | eta: 50s            sampling =========                               900/4000 | eta: 49s            sampling =========                               950/4000 | eta: 49s            sampling ==========                             1000/4000 | eta: 48s            sampling ==========                             1050/4000 | eta: 47s            sampling ==========                             1100/4000 | eta: 47s            sampling ===========                            1150/4000 | eta: 46s            sampling ===========                            1200/4000 | eta: 45s            sampling ============                           1250/4000 | eta: 45s            sampling ============                           1300/4000 | eta: 44s            sampling =============                          1350/4000 | eta: 43s            sampling =============                          1400/4000 | eta: 42s            sampling ==============                         1450/4000 | eta: 42s            sampling ==============                         1500/4000 | eta: 41s            sampling ===============                        1550/4000 | eta: 40s            sampling ===============                        1600/4000 | eta: 39s            sampling ================                       1650/4000 | eta: 38s            sampling ================                       1700/4000 | eta: 37s            sampling =================                      1750/4000 | eta: 36s            sampling =================                      1800/4000 | eta: 36s            sampling ==================                     1850/4000 | eta: 35s            sampling ==================                     1900/4000 | eta: 34s            sampling ===================                    1950/4000 | eta: 33s            sampling ===================                    2000/4000 | eta: 32s            sampling ===================                    2050/4000 | eta: 31s            sampling ====================                   2100/4000 | eta: 31s            sampling ====================                   2150/4000 | eta: 30s            sampling =====================                  2200/4000 | eta: 29s            sampling =====================                  2250/4000 | eta: 28s            sampling ======================                 2300/4000 | eta: 27s            sampling ======================                 2350/4000 | eta: 26s            sampling =======================                2400/4000 | eta: 26s            sampling =======================                2450/4000 | eta: 25s            sampling ========================               2500/4000 | eta: 24s            sampling ========================               2550/4000 | eta: 23s            sampling =========================              2600/4000 | eta: 23s            sampling =========================              2650/4000 | eta: 22s            sampling ==========================             2700/4000 | eta: 21s            sampling ==========================             2750/4000 | eta: 20s            sampling ===========================            2800/4000 | eta: 19s            sampling ===========================            2850/4000 | eta: 19s            sampling ============================           2900/4000 | eta: 18s            sampling ============================           2950/4000 | eta: 17s            sampling ============================           3000/4000 | eta: 16s            sampling =============================          3050/4000 | eta: 15s            sampling =============================          3100/4000 | eta: 14s            sampling ==============================         3150/4000 | eta: 14s            sampling ==============================         3200/4000 | eta: 13s            sampling ===============================        3250/4000 | eta: 12s            sampling ===============================        3300/4000 | eta: 11s            sampling ================================       3350/4000 | eta: 10s            sampling ================================       3400/4000 | eta: 10s            sampling =================================      3450/4000 | eta:  9s            sampling =================================      3500/4000 | eta:  8s            sampling ==================================     3550/4000 | eta:  7s            sampling ==================================     3600/4000 | eta:  6s            sampling ===================================    3650/4000 | eta:  6s            sampling ===================================    3700/4000 | eta:  5s            sampling ====================================   3750/4000 | eta:  4s            sampling ====================================   3800/4000 | eta:  3s            sampling =====================================  3850/4000 | eta:  2s            sampling =====================================  3900/4000 | eta:  2s            sampling ====================================== 3950/4000 | eta:  1s            sampling ====================================== 4000/4000 | eta:  0s
+    ##     warmup                                           0/2000 | eta:  ?s              warmup =                                        50/2000 | eta:  2m              warmup ==                                      100/2000 | eta:  1m              warmup ===                                     150/2000 | eta:  1m              warmup ====                                    200/2000 | eta:  1m              warmup =====                                   250/2000 | eta:  1m              warmup ======                                  300/2000 | eta:  1m              warmup =======                                 350/2000 | eta: 49s              warmup ========                                400/2000 | eta: 46s              warmup =========                               450/2000 | eta: 44s              warmup ==========                              500/2000 | eta: 42s              warmup ==========                              550/2000 | eta: 40s              warmup ===========                             600/2000 | eta: 38s              warmup ============                            650/2000 | eta: 37s              warmup =============                           700/2000 | eta: 35s              warmup ==============                          750/2000 | eta: 34s              warmup ===============                         800/2000 | eta: 33s              warmup ================                        850/2000 | eta: 31s | <1% bad    warmup =================                       900/2000 | eta: 30s | <1% bad    warmup ==================                      950/2000 | eta: 28s | <1% bad    warmup ===================                    1000/2000 | eta: 27s | <1% bad    warmup ====================                   1050/2000 | eta: 26s | <1% bad    warmup =====================                  1100/2000 | eta: 24s | <1% bad    warmup ======================                 1150/2000 | eta: 23s | <1% bad    warmup =======================                1200/2000 | eta: 21s | <1% bad    warmup ========================               1250/2000 | eta: 20s | <1% bad    warmup =========================              1300/2000 | eta: 19s | <1% bad    warmup ==========================             1350/2000 | eta: 17s | <1% bad    warmup ===========================            1400/2000 | eta: 16s | <1% bad    warmup ============================           1450/2000 | eta: 15s | <1% bad    warmup ============================           1500/2000 | eta: 13s | <1% bad    warmup =============================          1550/2000 | eta: 12s | <1% bad    warmup ==============================         1600/2000 | eta: 11s | <1% bad    warmup ===============================        1650/2000 | eta:  9s | <1% bad    warmup ================================       1700/2000 | eta:  8s | <1% bad    warmup =================================      1750/2000 | eta:  7s | <1% bad    warmup ==================================     1800/2000 | eta:  5s | <1% bad    warmup ===================================    1850/2000 | eta:  4s | <1% bad    warmup ====================================   1900/2000 | eta:  3s | <1% bad    warmup =====================================  1950/2000 | eta:  1s | <1% bad    warmup ====================================== 2000/2000 | eta:  0s | <1% bad
+    ##   sampling                                           0/4000 | eta:  ?s            sampling                                          50/4000 | eta:  2m            sampling =                                       100/4000 | eta:  2m            sampling =                                       150/4000 | eta:  2m            sampling ==                                      200/4000 | eta:  2m            sampling ==                                      250/4000 | eta:  2m            sampling ===                                     300/4000 | eta:  2m            sampling ===                                     350/4000 | eta:  2m            sampling ====                                    400/4000 | eta:  2m            sampling ====                                    450/4000 | eta:  2m            sampling =====                                   500/4000 | eta:  2m            sampling =====                                   550/4000 | eta:  2m            sampling ======                                  600/4000 | eta:  2m            sampling ======                                  650/4000 | eta:  2m            sampling =======                                 700/4000 | eta:  2m            sampling =======                                 750/4000 | eta:  2m            sampling ========                                800/4000 | eta:  1m            sampling ========                                850/4000 | eta:  1m            sampling =========                               900/4000 | eta:  1m            sampling =========                               950/4000 | eta:  1m            sampling ==========                             1000/4000 | eta:  1m            sampling ==========                             1050/4000 | eta:  1m            sampling ==========                             1100/4000 | eta:  1m            sampling ===========                            1150/4000 | eta:  1m            sampling ===========                            1200/4000 | eta:  1m            sampling ============                           1250/4000 | eta:  1m            sampling ============                           1300/4000 | eta:  1m            sampling =============                          1350/4000 | eta:  1m            sampling =============                          1400/4000 | eta:  1m            sampling ==============                         1450/4000 | eta:  1m            sampling ==============                         1500/4000 | eta:  1m            sampling ===============                        1550/4000 | eta:  1m            sampling ===============                        1600/4000 | eta:  1m            sampling ================                       1650/4000 | eta:  1m            sampling ================                       1700/4000 | eta:  1m            sampling =================                      1750/4000 | eta:  1m            sampling =================                      1800/4000 | eta:  1m            sampling ==================                     1850/4000 | eta:  1m            sampling ==================                     1900/4000 | eta:  1m            sampling ===================                    1950/4000 | eta:  1m            sampling ===================                    2000/4000 | eta:  1m            sampling ===================                    2050/4000 | eta:  1m            sampling ====================                   2100/4000 | eta:  1m            sampling ====================                   2150/4000 | eta:  1m            sampling =====================                  2200/4000 | eta: 49s            sampling =====================                  2250/4000 | eta: 48s            sampling ======================                 2300/4000 | eta: 46s            sampling ======================                 2350/4000 | eta: 45s            sampling =======================                2400/4000 | eta: 44s            sampling =======================                2450/4000 | eta: 42s            sampling ========================               2500/4000 | eta: 41s            sampling ========================               2550/4000 | eta: 40s            sampling =========================              2600/4000 | eta: 38s            sampling =========================              2650/4000 | eta: 37s            sampling ==========================             2700/4000 | eta: 36s            sampling ==========================             2750/4000 | eta: 35s            sampling ===========================            2800/4000 | eta: 33s            sampling ===========================            2850/4000 | eta: 32s            sampling ============================           2900/4000 | eta: 30s            sampling ============================           2950/4000 | eta: 29s            sampling ============================           3000/4000 | eta: 27s            sampling =============================          3050/4000 | eta: 26s            sampling =============================          3100/4000 | eta: 25s            sampling ==============================         3150/4000 | eta: 23s            sampling ==============================         3200/4000 | eta: 22s            sampling ===============================        3250/4000 | eta: 21s            sampling ===============================        3300/4000 | eta: 19s            sampling ================================       3350/4000 | eta: 18s            sampling ================================       3400/4000 | eta: 17s            sampling =================================      3450/4000 | eta: 15s            sampling =================================      3500/4000 | eta: 14s            sampling ==================================     3550/4000 | eta: 12s            sampling ==================================     3600/4000 | eta: 11s            sampling ===================================    3650/4000 | eta: 10s            sampling ===================================    3700/4000 | eta:  8s            sampling ====================================   3750/4000 | eta:  7s            sampling ====================================   3800/4000 | eta:  5s            sampling =====================================  3850/4000 | eta:  4s            sampling =====================================  3900/4000 | eta:  3s            sampling ====================================== 3950/4000 | eta:  1s            sampling ====================================== 4000/4000 | eta:  0s
 
 ``` r
 bayesplot::mcmc_trace(m_bbin$draws, regex_pars = c('alpha','beta','lambda'))
@@ -420,12 +1806,12 @@ bayesplot::mcmc_trace(m_bbin$draws, regex_pars = c('alpha','beta','lambda'))
 summary(m_bbin$draws)[[1]][1:5,]
 ```
 
-    ##                       Mean        SD     Naive SE Time-series SE
-    ## alpha           0.43412739 0.4032296 0.0031878099   0.0119662633
-    ## SD_s            1.13597682 0.1833565 0.0014495600   0.0051332733
-    ## phi             7.18023169 0.7186433 0.0056813738   0.0070814105
-    ## beta_s_dist_nit 0.90343739 0.0726593 0.0005744222   0.0006357859
-    ## lambda_s_pH     0.06069787 0.2061461 0.0016297282   0.0035196688
+    ##                       Mean         SD     Naive SE Time-series SE
+    ## alpha           0.42467755 0.39260682 0.0031038294   0.0086089155
+    ## SD_s            1.13260732 0.17649900 0.0013953471   0.0029438226
+    ## phi             7.17842426 0.71573828 0.0056584079   0.0067309079
+    ## beta_s_dist_nit 0.90252445 0.07246167 0.0005728598   0.0006368517
+    ## lambda_s_pH     0.05976383 0.21049731 0.0016641274   0.0036770676
 
 ## Predictions and partial effects
 

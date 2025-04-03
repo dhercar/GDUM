@@ -3,7 +3,7 @@ title: "GDUM: Simultaneusly modelling community dissimilarity and uniqueness"
 output: github_document
 ---
 
-This repository contains the code associated with the manuscript Hernandez-Carrasco et al. (2025). 
+This repository contains the code associated with the manuscript XXXXXXXXXXX et al. (2025). 
 
 - `functions` contains custom helper functions used in other scripts.
 - `simulations`, `case_study_doubs`, and `case_study_atlanticforest` contain scripts to replicate the analyses presented in the manuscript
@@ -33,9 +33,10 @@ library(coda)
 library(bayesplot)
 library(ggplot2)
 library(tidyverse)
+library(ade4)
 ```
 
-Note that the package `greta` requires some additional dependencies. Please check [greta-stats.org/](https://greta-stats.org/) for more information. 
+Note that the package `greta` requires some additional dependencies. Please check [greta-stats.org/](https://greta-stats.org) for more information. 
 
 ## Case-study: Fish from the doubs river
 
@@ -43,13 +44,12 @@ We will use the [doubs dataset](https://www.davidzeleny.net/anadat-r/doku.php/en
 
 ```{r, echo = TRUE, warning=FALSE, message=FALSE, results='hide'}
 # Load datasets
-doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', 
-                      row.names = 1)
-doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', 
-                      row.names = 1)
-doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', 
-                      row.names = 1)
+data(doubs)
+doubs.spe <- doubs$fish
+doubs.env <- doubs$env
+doubs.spa <- doubs$xy
 ```
+
 doubs.spe
 ```{r, echo = FALSE}
 kableExtra::kable(head(doubs.spe))
@@ -149,7 +149,7 @@ coda::gelman.diag(m_gaus$draws)
 
 In our case, all values are relatively small ($\geq 1.01$) indicating that chains have succesfully converged. 
 
-The `summary` of the draws provides the estimated value of each model parameter and credibility intervals
+The `summary` of the draws provides the estimated value of each model parameter and credible intervals
 ```{r}
 summary(m_gaus$draws)[[1]][1:5,]
 ```
@@ -211,11 +211,11 @@ m_bin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity (numerator: b + c)
 summary(m_bin$draws)[[1]][1:4,]
 ```
 
-The binomial distribution does not contain any scale parameter.
+The binomial distribution does have a scale parameter.
 
 #### Beta binomial distribution
 
-The beta-binomial distribution can be useful when the data is overdispersed compared to the binomial distribution.
+The beta-binomial distribution can be useful when the data is over-dispersed compared to the binomial distribution.
 
 ```{r}
 m_bbin <- fit_gdum(Y = Y_bin$num_sor, # Dissimilarity matrix (numerator: b + c)
