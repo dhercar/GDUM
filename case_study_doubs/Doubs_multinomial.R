@@ -5,6 +5,9 @@ library(ggplot2)
 library(tidyverse)
 library(cowplot)
 library(latex2exp)
+library(ade4)
+library(coda)
+library(bayesplot)
 
 # Load functions
 dir <- './Functions/'
@@ -14,37 +17,40 @@ sapply(paste0(dir,files.sources), source)
 # ggplot settings
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
-set.seed(1)
+
+# set seed 
+set.seed(2)
 
 # Load datasets
-doubs.spe <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpe.csv', row.names = 1)
-doubs.env <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsEnv.csv', row.names = 1)
-doubs.spa <- read.csv('https://raw.githubusercontent.com/zdealveindy/anadat-r/master/data/DoubsSpa.csv', row.names = 1)
+data(doubs)
+doubs.spe <- doubs$fish
+doubs.env <- doubs$env
+doubs.spa <- doubs$xy
 doubs.spa$s <- 1:30
 
 # Create response matrix
-sor_comp <- make_y_df( doubs.spe, method = 'abcd')
+sor_comp <- make_y_df(doubs.spe, method = 'abcd')
 Y_sha <- 2*sor_comp$a # n species shared 
 Y_rep <- pmin(sor_comp$b, sor_comp$c) # Replacement component (t)
 Y_sim <- abs(sor_comp$b - sor_comp$c) # Richness difference component (r)
 Y <- cbind(Y_rep, Y_sim, Y_sha) # Multivariate response
 
 # Predictor (distance along the river)
-X  <- scale(make_x_df(data.frame(doubs.env$das))[,3])
+X  <- scale(make_x_df(data.frame(doubs.env$dfs))[,3])
 
 # Design
 row <- sor_comp[, 1]
 col <- sor_comp[, 2]
 
 # ---- M1 FULL ----
-# Note that although the response has three categories, the liear predictor contains only 2 as the third can be derived as (1-p(k_1) - p(k_1))
+
 # priors
 beta <- normal(0, 1, dim = c(1,2),  truncation = c(0, Inf)) 
 alpha <- normal(0, 1, dim = 2)
 SD_s <- normal(0, 1, truncation = c(0, Inf), dim = 2)
 e_s  <- sweep(normal(0, 1, dim = c(nrow(doubs.spe),2)),2 , SD_s, FUN = '*') 
-S_s <- e_s # Site level component only contains RE
-eta <- sweep( X %*% beta + S_s[row,] + S_s[col,], 2, alpha, FUN = '+' ) 
+S_s <- e_s # Site level component only contains site RE
+eta <- sweep(X %*% beta + S_s[row,] + S_s[col,], 2, alpha, FUN = '+') 
 
 # model
 mu <- imultilogit(eta) # inverse link
@@ -56,26 +62,24 @@ n_realisations <- nrow(Y)
 # distribution
 distribution(Y) <- greta::multinomial(trials, mu, n_realisations)
 
-# Estimate
+# Fit model
 m1 <- model(beta, alpha, e_s, SD_s)
 draws <- greta::mcmc(m1, hmc(Lmin = 15, Lmax = 20), 
                      warmup = 5000,
                      n_samples = 10000)
 
- # check chains
-gelman.diag(draws) #Rhat
-bayesplot::mcmc_trace(draws, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_rank_overlay(draws, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_intervals(draws, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_rank_overlay(draws, regex_pars = c('e_s'))
-bayesplot::mcmc_intervals(draws, regex_pars = 'e_s')
+# check convergence
+gelman.diag(draws) # Rhat
+mcmc_trace(draws, regex_pars = c('beta', 'alpha', 'SD'))
+mcmc_rank_overlay(draws, regex_pars = c('beta', 'alpha', 'SD'))
+mcmc_rank_overlay(draws, regex_pars = c('e_s')) # RE
 
-# Calculate expected site re (proportional to u in this case)
+# Calculate posterior distributions for site re (proportional to u in this case)
 e_s_m1 <- data.frame(calculate(e_s, values = draws, nsim = 1000))
 e_s_m1 <- data.frame(t(apply(e_s_m1, 2, function(x) quantile(x, prob = c(0.025, 0.5, 0.975)))))
-e_s_m1$k <- rep(c('rep', 'sim'), each = 30)
-e_s_m1$s <- rep(1:30, 2)
-e_s_m1$sig <- as.factor((sign(e_s_m1$X2.5.) + sign(e_s_m1$X97.5.)) / 2)
+e_s_m1$k <- rep(c('rep', 'sim'), each = 30) # add partition
+e_s_m1$s <- rep(1:30, 2) # identify site
+e_s_m1$sig <- as.factor((sign(e_s_m1$X2.5.) + sign(e_s_m1$X97.5.)) / 2) 
 e_s_m1$col <- paste0(e_s_m1$k, e_s_m1$sig)
 
 plot.data <- e_s_m1 %>% 
@@ -91,7 +95,7 @@ plot.data <- e_s_m1 %>%
   theme(legend.position = '',
         strip.background = element_blank()) + 
   geom_point(aes(size = X50., colour = sig, fill = col), shape = 21, stroke = 1) + 
-  geom_text(data = subset(plot.data, s %in% c(8, 23:25)), aes(label = s, x = x + 15, y = y+10), size = 2.5) + 
+  geom_text(data = subset(plot.data, s %in% c(8, 23:25)), aes(label = s, x = x + 15, y = y + 10), size = 2.5) + 
   geom_point(data = subset(plot.data, sig != 0), aes(size = X50., colour = sig, fill = col), shape = 21, stroke = 1) + 
   scale_fill_manual('k',values = c( 'lightblue', 'lightblue3', 'steelblue3',
                                     'wheat', 'wheat3', 'darkorange')) + 
@@ -111,9 +115,7 @@ plot.data <- e_s_m1 %>%
   scale_size_continuous(range = c(0.05, 4)))
 
 # Predictions for river-distance gradient
-mu_1 <- imultilogit(
-  sweep(
-    seq(min(X), max(X), length.out = 100) %*% beta, 2, alpha, FUN = '+'))
+mu_1 <- imultilogit(sweep(seq(min(X), max(X), length.out = 100) %*% beta, 2, alpha, FUN = '+'))
 pred_m1 <- data.frame(calculate(mu_1,
   values = draws, nsim = 1000))
 pred_m1 <- data.frame(t(data.frame(apply(pred_m1,2 , function(x) quantile(x, prob = c(0.025, 0.25, 0.5, 0.75, 0.975))))))
@@ -165,19 +167,14 @@ draws2 <- greta::mcmc(m2, hmc(Lmin = 15, Lmax = 20),
 
 # check chains
 gelman.diag(draws2) #Rhat
-bayesplot::mcmc_trace(draws2, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_rank_overlay(draws2, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_intervals(draws2, regex_pars = c('beta', 'alpha', 'SD'))
-bayesplot::mcmc_rank_overlay(draws2, regex_pars = c('e_s'))
-bayesplot::mcmc_intervals(draws2, regex_pars = 'e_s')
-
+mcmc_rank_overlay(draws2, regex_pars = c('beta', 'alpha', 'SD'))
+mcmc_rank_overlay(draws2, regex_pars = c('e_s'))
 
 # Calculate u 
 S_s_m2 <-  data.frame(calculate(sweep(e_s,2,alpha/2,FUN = '+' ),
                                 values = draws2, nsim = 1000))
 
 S_s_m2 <- data.frame(data.frame(apply(S_s_m2,2 , function(x) quantile(x, prob = c(0.5)))))
-
 
 # Change in u when accounting for environmental gradient
 lcbd_comp <- data.frame(dif_m = (S_s_m1 - S_s_m2), k = rep(c('rep', 'sim'), each = 30), s = rep(1:30, 2))
@@ -195,7 +192,7 @@ names(lcbd_comp)[1] <- 'dif_m'
   scale_y_continuous(TeX("$\\Delta u_i$") , breaks = c(-1.5, -1, -0.5, 0, 0.5, 1)) + 
   xlab('site'))
 
-# prop explained
+# Full plot
 plot_doubs <- plot_grid(diss.plot,
                         plot_grid(map.plot,change.plot, rel_heights = c(2,1), ncol = 1, labels = c(' ', 'C')),
                         rel_widths = c(1,2), 
@@ -204,7 +201,3 @@ plot_doubs <- plot_grid(diss.plot,
 
 
 ggsave('plots/plot_doubs.png', plot_doubs, width = 18, height = 12, units = 'cm', dpi = 600)
-
-
-summary(draws)[[2]]
-summary(draws2)[[2]]
