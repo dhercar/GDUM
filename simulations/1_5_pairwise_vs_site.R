@@ -2,7 +2,6 @@ library(greta)
 library(latex2exp)
 library(ggplot2)
 library(extrafont)
-library(sysfonts)
 library(showtext)
 library(cowplot)
 library(splines)
@@ -14,7 +13,7 @@ theme_update(panel.grid = element_blank())
 set.seed(1)
 
 ## This allows us to annotate ggplots in specific facets
-annotation_custom2 <- function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data) 
+annotation_custom2 <- function(grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data) 
 {
   layer(data = data, stat = StatIdentity, position = PositionIdentity, 
         geom = ggplot2:::GeomCustomAnn,
@@ -299,6 +298,6 @@ pair_vs_site_fig <- plot_grid(plot_grid(uniq_plot, coef_plot_m4_5, rel_heights =
           plot_grid(env_plot, coef_plot_m6_7 , rel_heights = c(2,1), ncol =1, align = 'v', labels = c('B', 'D')),
           ncol = 2)
 
-ggsave( 'plots/pair_vs_site_plot.png',pair_vs_site_fig, width = 18, height = 8, dpi = 600, units = 'cm')
+ggsave( 'plots/pair_vs_site_plot.svg',pair_vs_site_fig, width = 18, height = 8, dpi = 600, units = 'cm')
 
 
