@@ -113,7 +113,7 @@ saveRDS(DiatLCBDSite,
 DiatCatch <- DiatPA %>%
   group_by(catchment) %>%
   summarize(across(.fns = sum,
-                   .cols = 3:ncol(.)-1))
+                   .cols = 3:ncol(.) - 1))
 DiatCatchPA <- cbind(DiatCatch[, 1], decostand(DiatCatch[, 2:ncol(DiatCatch)],
                                                method = "pa"))
 DiatLCBDCatch <- as.data.frame(cbind(DiatCatchPA[, 1],

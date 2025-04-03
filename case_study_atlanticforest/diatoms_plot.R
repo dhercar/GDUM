@@ -4,7 +4,7 @@ library(tidyverse)
 library(vegan)
 library(bayesplot)
 library(ggplot2)
-library(ggnewscale)
+library(ggridges)
 library(cowplot)
 library(latex2exp)
 library(sf)
@@ -17,8 +17,6 @@ sapply(paste0(dir,files.sources), source)
 theme_set(theme_bw())
 theme_update(panel.grid = element_blank())
 set.seed(1)
-
-
 
 ##  Read in data
 ##  File descriptions for this project
