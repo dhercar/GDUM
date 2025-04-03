@@ -198,6 +198,4 @@ plot_doubs <- plot_grid(diss.plot,
                         rel_widths = c(1,2), 
                         labels = c('A', 'B'))
 
-
-
-ggsave('plots/plot_doubs.png', plot_doubs, width = 18, height = 12, units = 'cm', dpi = 600)
+ggsave('plots/plot_doubs.svg', plot_doubs, width = 18, height = 12, units = 'cm', dpi = 600)
