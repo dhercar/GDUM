@@ -1,13 +1,13 @@
-GDUM: Simultaneusly modelling community dissimilarity and uniqueness
+GDUM: Simultaneously modelling community dissimilarity and uniqueness
 ================
 
 This repository contains the code associated with the manuscript
 Hernandez-Carrasco et al. (2025).
 
-- `functions` contains custom helper functions used in other scripts.
+- `Functions` contains custom helper functions used in other scripts.
 - `simulations`, `case_study_doubs`, and `case_study_atlanticforest`
   contain scripts to replicate the analyses presented in the manuscript
-- `SI` contains code to replicate the figures in Supplementary
+- `SI` contains code to replicate the figures in Supporting
   Information
 - `models` contains the models fitted to simulated data
 - `plots` contains the figures in the main text
