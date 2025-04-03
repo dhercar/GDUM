@@ -158,7 +158,7 @@ diat_u_plot <-
 
 
 
-ggsave('plots/diat_plot.png', diat_u_plot,width = 18, height = 10, dpi = 600, units = 'cm')  
+ggsave('plots/diat_plot.svg', diat_u_plot,width = 18, height = 10, dpi = 600, units = 'cm')  
 
 # Streams and catchments with CI above or below 0
 sum(sign(sum_diat_r$X2.5.)*sign(sum_diat_r$X97.5.) == 1)
