@@ -1,12 +1,13 @@
 # Load packages
 library(geoR)
 library(greta)
-library(rvmethod)
-library(cowplot)
+library(bayesplot)
 library(coda)
+library(rvmethod)
 library(vegan)
 library(adespatial)
 library(ggplot2)
+library(cowplot)
 library(showtext)
 library(latex2exp)
 
@@ -70,7 +71,7 @@ m0 <- fit_gdum(Y = Y,
                D = D, 
                W = W, 
                diss_formula = ~ s_dist_env1, 
-               site_formula = ~s_isolation,
+               site_formula = ~ s_isolation,
                Lmin = 15,
                Lmax = 20,
                n_samples = 8000,
