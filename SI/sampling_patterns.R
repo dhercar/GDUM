@@ -1,6 +1,7 @@
 # LOAD FUNCTTIONS
 source('./functions/convenience_functions.R')
 source('./functions/sim_com_data.R')
+
 library(ggplot2)
 library(ggforce)
 library(tidyverse)
@@ -28,11 +29,11 @@ tol_sp <- cbind(tol_x_1 = exp(runif(n_sp,min(log(tol_range)), max(log(tol_range)
                 tol_x_2 =  exp(runif(n_sp,min(log(tol_range)), max(log(tol_range)))))
 
 
-ggplot(cbind(opt_sp, tol_sp), aes(x = opt_x_1, y = opt_x_2, col = as.factor(1:n_sp))) +
-  theme(legend.position = '') +
-  coord_equal() +
-  geom_ellipse(aes(x0 = opt_x_1 , y0 = opt_x_2, a = 2*tol_x_1, b = 2*tol_x_2, angle = 0))
-
+# ggplot(cbind(opt_sp, tol_sp), aes(x = opt_x_1, y = opt_x_2, col = as.factor(1:n_sp))) +
+#   theme(legend.position = '') +
+#   coord_equal() +
+#   geom_ellipse(aes(x0 = opt_x_1 , y0 = opt_x_2, a = 2*tol_x_1, b = 2*tol_x_2, angle = 0))
+# 
 
 # ---- 2: Sampling patterns ----
 
@@ -81,12 +82,11 @@ rm(samples_circle, samples_skewed, samples_norm)
 # ---- 3: Species composition ----
 # Calculate probability of occurrence from optima tolerance
 out.list <- list()
-for(i in unique(samples$type)){
+for (i in unique(samples$type)) {
   print(i)
   kk <- subset(samples, type == i)
-  for(j in 1:nrow(kk)) {
-    print(j)
-    for(sp in 1:n_sp) {
+  for (j in 1:nrow(kk)) {
+    for (sp in 1:n_sp) {
       p_x_1 =  gaussfunc(kk[j,1], 
                            mu = opt_sp[sp,1],
                            sigma = tol_sp[sp,1])
@@ -96,7 +96,7 @@ for(i in unique(samples$type)){
       
       p_sp = p_x_1*p_x_2
       
-      out.list[[length(out.list)+1]] <- data.frame(type = i,
+      out.list[[length(out.list) + 1]] <- data.frame(type = i,
                                                    x_1 = kk[j,1],
                                                    x_2 = kk[j,2],
                                                    sp = sp,
@@ -114,7 +114,7 @@ out.data <- out.data %>% pivot_wider(names_from = sp, values_from = PA, id_cols 
 # ---- 4: Calculate LCBD ----
 
 data_LCBD = NULL
-for( i in unique(out.data$type)) {
+for (i in unique(out.data$type)) {
   kk <- subset(out.data, type == i)
   LCBD <- LCBD.comp(vegdist(kk[,-c(1:3)]))$LCBD
   data_LCBD = rbind(data_LCBD, data.frame(type = i, x_1 = kk$x_1, x_2 = kk$x_2, LCBD = LCBD))
@@ -168,4 +168,4 @@ ggplot(pred.data, aes(x = x, y = predicted))+
   facet_grid(type~var), align = 'hv', rel_widths = c(1,2), labels = c('A', 'B'))
 
 
-ggsave('SI/sampling_patterns.png', width = 16, height = 18, dpi = 600, units = 'cm')
+ggsave('SI/sampling_patterns.svg', width = 16, height = 18, dpi = 600, units = 'cm')
