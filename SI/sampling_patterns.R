@@ -16,7 +16,7 @@ set.seed(5)
 # parameters
 n_sp = 100
 n_samples = 100
-env_range = c(-0.5,1.5)
+env_range = c(-0.5, 1.5)
 tol_range = c(0.1, 0.4)
 
 
@@ -44,6 +44,7 @@ angles <- seq(0, 2 * pi, length.out = n_samples + 1)[-n_sp-1]
 samples_circle <- data.frame(x_1 = 0.5 + radius * cos(angles) + rnorm(n_sp, 0, 0.03),
                             x_2 =  0.5 + radius * sin(angles) + rnorm(n_sp, 0, 0.03),
                             type = 'circle')
+
 samples_circle[,1] <- ifelse(samples_circle[,1] >1 , 1, samples_circle[,1])
 samples_circle[,1] <- ifelse(samples_circle[,1] <0 , 0, samples_circle[,1])
 samples_circle[,2] <- ifelse(samples_circle[,2] >1 , 1, samples_circle[,2])
@@ -121,12 +122,12 @@ for (i in unique(out.data$type)) {
 }
 
 library(splines)
-m1 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2,2), data = subset(data_LCBD,type == 'circle'))
-m2 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2,2), data = subset(data_LCBD,type == 'normal'))
-m3 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2,2), data = subset(data_LCBD,type == 'skewed'))
-m4 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2,2), data = subset(data_LCBD,type == 'grid'))
+m1 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2, 2), data = subset(data_LCBD,type == 'circle'))
+m2 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2, 2), data = subset(data_LCBD,type == 'normal'))
+m3 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2, 2), data = subset(data_LCBD,type == 'skewed'))
+m4 <- glmmTMB(LCBD~ ns(x_1, 2) + ns(x_2, 2), data = subset(data_LCBD,type == 'grid'))
 
-pred.data <- rbind(
+pred.data_1 <- rbind(
   cbind(data.frame(ggeffects::ggpredict(m1, terms = c('x_1[0:1, by=0.01]'), type = 'fixed')), var = 'x_1', type = 'circle'),
   cbind(data.frame(ggeffects::ggpredict(m1, terms = c('x_2[0:1, by=0.01]'))), var = 'x_2', type = 'circle'),
   cbind(data.frame(ggeffects::ggpredict(m2, terms = c('x_1[0:1, by=0.01]'))), var = 'x_1', type = 'normal'),
@@ -137,10 +138,21 @@ pred.data <- rbind(
   cbind(data.frame(ggeffects::ggpredict(m4, terms = c('x_2[0:1, by=0.01]'))), var = 'x_2', type = 'grid'))
 
 
+newdata <- expand.grid(x_1 = seq(0,1, 0.01),
+                       x_2 = seq(0, 1, 0.01))
+
+pred.data_2 <- rbind(
+  cbind(newdata, LCBD = predict(m1, newdata), type = 'circle'),
+  cbind(newdata, LCBD = predict(m2, newdata), type = 'normal'),
+  cbind(newdata, LCBD =predict(m3, newdata), type = 'skewed'),
+  cbind(newdata, LCBD =predict(m4, newdata), type = 'grid'))
+
+
+
 plot_grid(
-ggplot(samples, aes( x = x_1, y= x_2)) +
-  theme_bw()+
-  geom_point(aes(col = type, fill=type), shape =21, alpha = 0.7) +
+ggplot(samples, aes( x = x_1, y = x_2)) +
+  theme_bw() +
+  geom_point(aes(col = type, fill = type), shape = 21, alpha = 0.7) +
   scale_colour_manual(values = c('steelblue', 'darkorange', 'darkolivegreen', 'brown')) +
   scale_fill_manual(values = c('steelblue', 'darkorange', 'darkolivegreen', 'brown')) +
   facet_grid(type ~ 1) +
@@ -149,7 +161,7 @@ ggplot(samples, aes( x = x_1, y= x_2)) +
         strip.text = element_blank(),
         panel.grid = element_blank(),
         legend.position = ''),
-ggplot(pred.data, aes(x = x, y = predicted))+
+ggplot(pred.data_1, aes(x = x, y = predicted))+
   geom_line(aes(col = type))+
   theme_bw()+
   theme(panel.border = element_rect(fill= 'transparent'), 
@@ -162,10 +174,19 @@ ggplot(pred.data, aes(x = x, y = predicted))+
               aes(x = value, y = 0.007, col = type), shape = 3 )+
   geom_ribbon(aes(ymin=conf.low, ymax = conf.high, fill = type), alpha = 0.2) +
   scale_x_continuous('environment', expand = c(0,0), limits = c(0,1), breaks = c(0, 0.2,0.4, 0.6, 0.8)) +
-  scale_y_continuous('LCBD',expand = c(0,0), limits = c(0.007, 0.017)) + 
+  scale_y_continuous('LCBD',expand = c(0,0), limits = c(0.007, NA)) + 
   scale_colour_manual(values = c('steelblue', 'darkorange', 'darkolivegreen', 'brown')) +
   scale_fill_manual(values = c('steelblue', 'darkorange', 'darkolivegreen', 'brown')) +
-  facet_grid(type~var), align = 'hv', rel_widths = c(1,2), labels = c('A', 'B'))
+  facet_grid(type~var),
+ggplot(pred.data_2, aes(x = x_1, y = x_2)) + 
+  geom_tile(aes(fill = LCBD)) + 
+  facet_wrap(~type, ncol = 1) + 
+  theme_void() + 
+  theme(strip.text = element_blank(),
+        aspect.ratio = 1) +
+  scale_fill_gradientn(colours = c('black', 'purple4', 'brown3', 'orange', 'yellow','lightyellow')),
+align = 'hv', rel_widths = c(1,2,1.5), labels = c('A', 'B', 'C'), ncol = 3)
 
 
-ggsave('SI/sampling_patterns.svg', width = 16, height = 18, dpi = 600, units = 'cm')
+ggsave('SI/sampling_patterns.svg', width = 20, height = 18, dpi = 600, units = 'cm')
+ggsave('SI/sampling_patterns.png', width = 20, height = 18, dpi = 600, units = 'cm')

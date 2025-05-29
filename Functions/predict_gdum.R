@@ -73,7 +73,7 @@ predict_gdum <- function(fit,
   D_s_m[cbind(D_new[,1], D_new[,2])]  <-  new_h_eta
   D_s_m[cbind(D_new[,2], D_new[,1])]  <-  new_h_eta
   D_s_s <- greta::rowSums(D_s_m) / nrow(D_s_m)
-  u_eta <- fit$greta_arrays$alpha/2 + D_s_s + new_v_eta
+  u_eta <- fit$greta_arrays$alpha + D_s_s + new_v_eta
   draws_u <- t(apply(data.frame(greta::calculate(u_eta, values = fit$draws, nsim = samples)), 2, function(x) quantile(x, probs = quantiles)))
   return(draws_u)
   }
