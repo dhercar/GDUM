@@ -137,3 +137,6 @@ Type objective_function<Type>::operator() ()
   REPORT(intercept);
   return nll;
 }
+
+
+

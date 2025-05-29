@@ -1,5 +1,4 @@
-summary.gdmm <- function(obj,
-                         print_result = TRUE) {
+summary.gdmm <- function(obj) {
     
     # Get coefficient table with p-values
     coef_table <- summary(obj$sdrep, select = c('fixed'), p.value = TRUE)
@@ -24,6 +23,7 @@ summary.gdmm <- function(obj,
                   k = length(obj$opt$par))
     
     out <- list(call = obj$call,
+                mono = obj$mono,
                 table = coef_table, 
                 p_values = p_values,
                 names_beta =  paste0('diss: ', colnames(obj$form_X$predictors)),
@@ -40,7 +40,6 @@ summary.gdmm <- function(obj,
 
 summary.bbgdmm <- function(obj, 
                          quantiles = c(0.025, 0.5, 0.975),
-                         print_result = TRUE,
                          null_value = 0) {
   
   # Basic statistics 
@@ -79,6 +78,7 @@ summary.bbgdmm <- function(obj,
                                     ifelse(pseudo_p < 0.1, ".", " "))))
   
   out <- list(call = obj$call, 
+              mono = obj$mono,
               estimate = means,
               sds = sds,
               pseudo_zval = pseudo_z,
@@ -113,11 +113,15 @@ print.summary.gdmm <- function(x, ...) {
   names(x$table) <-  c("Estimate", "Std.Err.", "z value", "Pr(>|z^2|)", " ")
   print(x$table, digits = 3)
   
+  if (x$mono) message('\nCAUTION: P-values for dissimilarity components (diss) should not be used for hypothesis testing when "mono = TRUE"')
+  
   cat("---\n")
   cat("signif. codes: '***' <0.001 '**' <0.01 '*' <0.05 '.' <0.1 \n")
   cat("---\n\n")
   # logL, AIC, AICc and BIC
   cat("Marginal log-likelihood: ", x$logL, "\nAIC: ", x$AIC, ", AICc: ", x$AICc, ", BIC: ", x$BIC, "\n")
+  cat('\n')
+  print_title2('', symb = '—')
 }
 
 
@@ -128,11 +132,10 @@ print.summary.bbgdmm <- function(x, ...) {
   cat(" ", call_str, "\n\n", sep = '')
   
   # table
-  cat("coeff. summary table:\n\n")
+  print_title2(" Coeff. Table ", symb = '-')
   rownames(x$CI)[rownames(x$CI) == 'beta'] <- x$names_beta
   rownames(x$CI)[rownames(x$CI)  == 'lambda'] <- x$names_lambda
   rownames(x$CI)[rownames(x$CI)  == 'intercept'] <- '(Intercept)'
-  
   colnames(x$CI) <-  paste0(x$quantiles*100, '%')
   
   table <- data.frame(x$estimate,
@@ -144,15 +147,15 @@ print.summary.bbgdmm <- function(x, ...) {
   names(table) <- c('Estimate', 'Std.Err.', paste0(x$quantiles*100,'%'), 'pseudo-Z', 'pseudo-Pval', ' ')
   print(table, digits = 4)
   
+  if (x$mono) message('\nCAUTION: pseudo P-values for dissimilarity components (diss) should not be used for hypothesis testing when "mono = TRUE"')
+  
   cat("---\n")
   cat("signif. codes: '***' <0.001 '**' <0.01 '*' <0.05 '.' <0.1 \n")
   cat("---\n\n")
-  # logL, AIC, AICc and BIC
   cat("Marginal log-likelihood (average): ", x$logL, "\nAIC: ", x$AIC, ", AICc: ", x$AICc, ", BIC: ", x$BIC, "\n")
-
+  cat('\n')
+  print_title2('', symb = '—')
 }
 
-
-
-
+summary(m)
 

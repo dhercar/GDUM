@@ -158,8 +158,8 @@ gdmm <- function(Y,
                   form_X = form_X,
                   form_W = form_W,
                   Z_design = Z_design,
-                  map_re,
-                  re_vars,
+                  map_re = map_re,
+                  re_vars = re_vars,
                   diss_formula = diss_formula,
                   uniq_formula = uniq_formula,
                   link = link,
@@ -168,6 +168,7 @@ gdmm <- function(Y,
                   obj = obj,
                   opt = opt,
                   boot = FALSE,
+                  mono = mono,
                   call = match.call())
       class(out) <- 'gdmm'
       return(out)
@@ -237,8 +238,8 @@ gdmm <- function(Y,
                 form_X = form_X,
                 form_W = form_W,
                 Z_design = Z_design,
-                map_re,
-                re_vars,
+                map_re = map_re,
+                re_vars = re_vars,
                 diss_formula = diss_formula,
                 uniq_formula = uniq_formula,
                 link = link,
@@ -246,12 +247,88 @@ gdmm <- function(Y,
                 boot_samples = results,
                 n_boot = n_boot,
                 boot = TRUE,
+                mono = mono,
                 call = match.call()) 
     class(out) <- 'bbgdmm'
     return(out)
   }
 }
 
+
+
+print.gdmm <- function(m, ...){
+  print_title('Generalized dissimilarity mixed model (GDMM)', symb = '—')  # call
+  
+  cat('convergence:', ifelse(m$opt$convergence == 0, 'succesful convergence\n', 'optimization has not reached succesful convergence\n'))
+  cat('nlminb message: ')
+  cat(m$opt$message, '\n\n')
+  
+  cat('function call:\n')
+  print(m$call)
+  cat('\n')
+  
+  print_title2(' Details ', symb = '-')
+  if (m$mono) cat('- monotonic dissimilarity effects (mono = TRUE) \n')
+  cat('- distribution (family):', m$family, '\n')
+  cat('- link:', m$link, '\n\n')
+  
+  print_title2(' Predictors ', symb = '-')
+  
+  cat('- dissimilarity gradient(s): ')
+  if (!is.null(m$diss_formula)) {
+    print(m$diss_formula)
+  } else {
+    cat('no dissimilarity gradients included \n')
+  }
+  
+  cat('- effect(s) on uniqueness: ')
+  if (!is.null(m$uniq_formula)) {
+    print(lme4::nobars(m$uniq_formula))
+  } else {
+    cat('no predictors on uniqueness included \n')
+  }
+  
+  cat('- random effects: ')
+  cat(ifelse(length(m$re_vars) > 0, paste(m$re_vars,sep = ' ,'), 'no random effects included \n'))
+  
+}
+
+print.bbgdmm <- function(m, ...){
+  print_title('Generalized dissimilarity mixed model (GDMM)', symb = '—')  # call
+  
+  cat('Bayesian Bootstrapping with', m$n_boot, 'random samples\n\n')
+  
+  cat('function call:\n')
+  print(m$call)
+  cat('\n')
+  
+  print_title2(' Details ', symb = '-')
+  if (m$mono) cat('- monotonic dissimilarity effects (mono = TRUE) \n')
+  cat('- distribution (family):', m$family, '\n')
+  cat('- link:', m$link, '\n\n')
+  
+  print_title2(' Predictors ', symb = '-')
+  
+  cat('- dissimilarity gradient(s): ')
+  if (!is.null(m$diss_formula)) {
+    print(m$diss_formula)
+  } else {
+    cat('none included \n')
+  }
+  
+  cat('- effect(s) on uniqueness: ')
+  if (!is.null(m$uniq_formula)) {
+    print(lme4::nobars(m$uniq_formula))
+  } else {
+    cat('none included \n')
+  }
+  
+  cat('- random effects: ')
+  cat(ifelse(length(m$re_vars) > 0, paste(m$re_vars,sep = ' ,'), 'none included \n'))
+  
+  cat('\n')
+  print_title2('', symb = '—')
+}
 
 
 

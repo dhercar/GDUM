@@ -22,13 +22,13 @@ hist(log(env$Phosp))
 
 m <- gdmm(Y = com, 
           X = env, 
-          diss_formula = ~isp(pH,4),
-          uniq_formula = NULL,
+          diss_formula = NULL,
+          uniq_formula = ~ isp(pH, degree = 2),
           binary = TRUE,
           family = 'normal',
           method = 'bray',
           link = 'identity',
-          bboot = F,
+          bboot = T,
           n_boot = 1000,
           mono = T)
 
