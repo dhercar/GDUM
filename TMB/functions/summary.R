@@ -1,7 +1,7 @@
 summary.gdmm <- function(obj) {
     
     # Get coefficient table with p-values
-    coef_table <- summary(obj$sdrep, select = c('fixed'), p.value = TRUE)
+    coef_table <- summary(obj$sdrep, select = c('report'), p.value = TRUE)
     
     # Add significance stars
     p_values <- coef_table[, "Pr(>|z^2|)"]
@@ -44,6 +44,7 @@ summary.bbgdmm <- function(obj,
   
   # Basic statistics 
   samples <- obj$boot_samples[, (colnames(obj$boot_samples) != 'logLikelihood') & (substr(colnames(obj$boot_samples), 1,5) != 'u_re_')]
+
   logL <- mean(obj$boot_samples[,'logLikelihood'])
   
   # Calculate AIC 
@@ -106,7 +107,7 @@ print.summary.gdmm <- function(x, ...) {
   
   # table
   cat("coeff. summary table:\n\n")
-  rownames(x$table)[rownames(x$table) == 'beta'] <- x$names_beta
+  rownames(x$table)[rownames(x$table) == 'e_beta'] <- x$names_beta
   rownames(x$table)[rownames(x$table) == 'lambda'] <- x$names_lambda
   rownames(x$table)[rownames(x$table) == 'intercept'] <- '(Intercept)'
   x$table <- data.frame(x$table, x$sig)
@@ -118,7 +119,7 @@ print.summary.gdmm <- function(x, ...) {
   cat("---\n")
   cat("signif. codes: '***' <0.001 '**' <0.01 '*' <0.05 '.' <0.1 \n")
   cat("---\n\n")
-  # logL, AIC, AICc and BIC
+  # logL, AIC, AICc, and BIC
   cat("Marginal log-likelihood: ", x$logL, "\nAIC: ", x$AIC, ", AICc: ", x$AICc, ", BIC: ", x$BIC, "\n")
   cat('\n')
   print_title2('', symb = '—')
@@ -133,7 +134,7 @@ print.summary.bbgdmm <- function(x, ...) {
   
   # table
   print_title2(" Coeff. Table ", symb = '-')
-  rownames(x$CI)[rownames(x$CI) == 'beta'] <- x$names_beta
+  rownames(x$CI)[rownames(x$CI) == 'e_beta'] <- x$names_beta
   rownames(x$CI)[rownames(x$CI)  == 'lambda'] <- x$names_lambda
   rownames(x$CI)[rownames(x$CI)  == 'intercept'] <- '(Intercept)'
   colnames(x$CI) <-  paste0(x$quantiles*100, '%')
@@ -156,6 +157,4 @@ print.summary.bbgdmm <- function(x, ...) {
   cat('\n')
   print_title2('', symb = '—')
 }
-
-summary(m)
 
