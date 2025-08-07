@@ -1,1 +1,0 @@
-dyn.load(dynlib('TMB/gdum'))
