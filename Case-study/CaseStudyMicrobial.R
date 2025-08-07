@@ -2,7 +2,7 @@
 library(gllvm)
 library(vegan)
 
-data('microbialdata')
+data('microbialdata', package = 'gllvm')
 env <- microbialdata$Xenv
 env$site <- as.factor(1:nrow(env))
 sp <- microbialdata$Y
@@ -242,3 +242,65 @@ plot_grid(plot_grid(exp_LCBD_plot, fx_plot, rel_heights = c(1,1), ncol = 1, alig
 ggsave('figs/microbial_model.pdf', width = 18, height = 10, units = 'cm', dpi = 600)
 ggsave('figs/microbial_model.svg', width = 18, height = 10, units = 'cm', dpi = 600)
 
+
+
+diss_gradients <- diss_gradient(m0, CI_quant = c(0.95, 0.5))$pH
+
+m0 <- gdmm(Y = sp,
+           X = env, 
+           diss_formula = ~isp(pH, degree = 2), 
+           binary = T,
+           family = 'normal',
+           method = 'bray',
+           link = 'identity',
+           bboot = T,
+           n_boot = 1000,
+           mono = T)
+
+diss_gradients <- diss_gradient(m0, CI_quant = c(0.95, 0.5))$pH
+
+
+fx_plot <- ggplot(diss_gradients, aes(x = x, y = f_x)) + 
+  ylab('f(pH)') +
+  xlab('pH') +
+  theme(
+    strip.placement = 'outside',
+    panel.grid = element_blank(),
+  ) +
+  
+  # Confidence ribbons and main line
+  geom_ribbon(aes(ymin = `CI 2.5%`, ymax = `CI 97.5%`), fill = 'steelblue', alpha = 0.1) +
+  geom_ribbon(aes(ymin = `CI 25%`, ymax = `CI 75%`), fill = 'steelblue', alpha = 0.2) +
+  geom_line(col = 'steelblue4') + 
+  
+  # Vertical and horizontal segments for i
+  geom_segment(aes(x = 6, y = 0, xend = 6, yend = 0.113)) + 
+  geom_segment(aes(x = 8.95, y = 0.113, xend = 6, yend = 0.113)) + 
+  
+  # Vertical and horizontal segments for j
+  geom_segment(aes(x = 7.5, y = 0, xend = 7.5, yend = 0.264)) + 
+  geom_segment(aes(x = 7.5, y = 0.264, xend = 8.95, yend = 0.264)) + 
+  
+  # y-difference arrows (double-headed)
+  geom_segment(aes(x = 8.85, y = 0.113, xend = 8.85, yend = 0.264),
+               arrow = arrow(type = 'closed', length = unit(0.15, "cm"))) + 
+  geom_segment(aes(x = 8.85, y = 0.264, xend = 8.85, yend = 0.113),
+               arrow = arrow(type = 'closed', length = unit(0.15, "cm"))) +
+  
+  # x-difference arrows (double-headed), now closer to y = 0
+  geom_segment(aes(x = 6, y = 0.01, xend = 7.5, yend = 0.01),
+               arrow = arrow(type = 'closed', length = unit(0.15, "cm"))) +
+  geom_segment(aes(x = 7.5, y = 0.01, xend = 6, yend = 0.01),
+               arrow = arrow(type = 'closed', length = unit(0.15, "cm"))) +
+  
+  # y-difference annotation (vertical, rotated)
+  annotate("text", x = 9.05, y = (0.113 + 0.264)/2,
+           label = expression(h[ij] == group("|", f[pH](pH[i]) - f[pH](pH[j]), "|")),
+           angle = 270, vjust = 0.5, size = 2.7) +
+  
+  # x-difference annotation, moved closer to x-axis
+  annotate("text", x = (6 + 7.5)/2, y = 0.015,
+           label = expression(group("|", pH[i] - pH[j], "|")),
+           vjust = 0, size = 2.7)
+
+ggsave( 'figs/example_fx_gradient.png', fx_plot, width = 12, height = 10, units = 'cm', dpi = 600)

@@ -96,7 +96,7 @@ gdmm <- function(Y = NULL,
   if (!is.null(diss_formula) & !is.null(X)) {
   form_X <- hardhat::mold(diss_formula, 
                           X, 
-                          blueprint = default_formula_blueprint(intercept = FALSE))
+                          blueprint = hardhat::default_formula_blueprint(intercept = FALSE))
   } else {
   form_X <- list(predictors =  matrix(ncol = 0, nrow = 0))
   }
@@ -109,7 +109,7 @@ gdmm <- function(Y = NULL,
     if ( length(attr(terms(fix_terms_W), 'variables')) > 1 ) {
       form_W <- hardhat::mold(fix_terms_W, 
                               X, 
-                              blueprint = default_formula_blueprint(intercept = FALSE, indicators = 'traditional'))
+                              blueprint = hardhat::default_formula_blueprint(intercept = FALSE, indicators = 'traditional'))
     } else {
       form_W <- list(predictors =  matrix(ncol = 0, nrow = 0))
     }
@@ -122,7 +122,7 @@ gdmm <- function(Y = NULL,
   # Re model matrix
   map = list() 
   if (length(re_vars) > 0) {
-    Z_design <- sparse.model.matrix(eval(parse(text = paste0('~ 0 + ', paste0(re_vars, collapse = ' + ')))),
+    Z_design <- Matrix::sparse.model.matrix(eval(parse(text = paste0('~ 0 + ', paste0(re_vars, collapse = ' + ')))),
                              data = X)
     has_re = 1
     map_re <- as.numeric(as.factor(unlist(lapply(re_vars, function(x) rep(x, length(unique(X[[x]])))))))
