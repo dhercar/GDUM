@@ -53,7 +53,7 @@ plot_ushape <- ggplot(points, aes(y = LCBD, x = pH)) +
 ## 2 Residual pattern ##
 m0 <- gdmm(Y = sp,
            X = env, 
-           diss_formula = ~isp(pH, degree = 2), # In the future: s( bdo ) + s(nit)
+           diss_formula = ~isp(pH, degree = 2), 
            uniq_formula = ~(1|site),#~ splines::bs(pH, df = 3),
            binary = T,
            family = 'normal',
