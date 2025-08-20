@@ -1,3 +1,11 @@
+# Author: Daniel Hern'andez Carrasco
+# Email: dani.hc97@gmail.com
+# Created: 8/13/2025
+# License: MIT (see LICENSE file for details)
+
+# Description: This script showcases the use of the gdmmTMB package using data available within the gdm package
+
+
 # Load data
 library(gllvm)
 library(vegan)
