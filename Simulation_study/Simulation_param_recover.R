@@ -206,13 +206,13 @@ ss_BIAS <- results_ss %>%
   filter(par == 'lambda')
 
 re_BIAS <- results_re %>% 
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   filter(par == 'lambda')
 
 bb_BIAS <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   filter(par == 'lambda')
@@ -226,31 +226,41 @@ BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
         legend.key.spacing = unit(0.1, 'cm'),
         legend.background = element_blank()) +
   xlab('n') +
+  ylab('bias') +
   ylim(-1, 1) +
   scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1))   
 
 (BIAS_plot_normal_sub <- ss_BIAS %>% 
-  bind_rows(re_BIAS) %>% 
-  bind_rows(bb_BIAS) %>% 
-  filter(n %in% c(20, 100), lambda == 1) %>%
-  ggplot(aes(x = as.factor(n), 
-             y = BIAS, 
-             fill = as.factor(model))) +
-  geom_hline(yintercept = 0, lty = 5, col = 'grey') +
-  stat_summary(aes(lty = beta, shape = beta), 
-               geom = 'pointrange',
-               fun.data = mean_sdl,
-               position = position_dodge(width = 0.7)) +
-  theme(legend.position = '',
-        legend.key.spacing = unit(0.1, 'cm'),
-        legend.background = element_blank()) +
-  xlab('n') +
-  ylim(-1,1) + 
-  scale_shape_manual(values = c(21, 24)) +
-  scale_linetype_manual(values = c(1,5)) +
-  scale_fill_manual('model', 
+    bind_rows(re_BIAS) %>% 
+    bind_rows(bb_BIAS) %>% 
+    filter(n %in% c(20, 100), lambda == 1) %>%
+    ggplot(aes(x = as.factor(n), 
+               y = BIAS, 
+               fill = as.factor(model))) +
+    geom_hline(yintercept = 0, lty = 5, col = 'grey') +
+    stat_summary(aes(lty = beta, colour = model), 
+                 geom = 'linerange',
+                 fun.data = function(x) return(data.frame(ymin = mean(x)-sd(x), ymax = mean(x) + sd(x))),
+                 position = position_dodge(width = 0.7)) +
+    stat_summary(aes(shape = beta), 
+                 geom = 'point',
+                 size = 1.5,
+                 fun = 'mean',
+                 position = position_dodge(width = 0.7)) +
+    theme(legend.position = '',
+          legend.key.spacing = unit(0.1, 'cm'),
+          legend.background = element_blank()) +
+    xlab('n') +
+    ylab('bias') +
+    ylim(-1,1) + 
+    scale_shape_manual(values = c(21, 24)) +
+    scale_linetype_manual(values = c(1,1)) +
+    scale_fill_manual('model', 
                       values = c('steelblue', 'khaki3', 'coral'), 
-                      labels = c(0, 0.5, 1)))
+                      labels = c(0, 0.5, 1)) +
+    scale_colour_manual('model', 
+                        values = c('steelblue', 'khaki3', 'coral'), 
+                        labels = c(0, 0.5, 1)))
 
 ### ERROR ####
 ss_RMSE <- results_ss %>%
@@ -261,14 +271,14 @@ ss_RMSE <- results_ss %>%
   filter(par == 'lambda')
 
 re_RMSE <- results_re %>% 
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n,par, par_true, beta, model) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
 bb_RMSE <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n,par, par_true, beta, model) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
@@ -279,14 +289,14 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
   geom_path() +
   geom_jitter(width = 0.1, height = 0) +
   facet_grid(beta~model) +
-  theme(legend.position = 'inside',
+  theme(legend.position = '',
         legend.position.inside = c(0.95,0.8),
         legend.title.position = 'left',
         legend.key.spacing = unit(0.1, 'cm'),
         legend.background = element_blank()) +
   ylim(1,11.5) + 
   scale_shape_manual(values = c(21, 24)) +
-  scale_linetype_manual(values = c(1,5)) +
+  scale_linetype_manual(values = c(1,1)) +
   scale_colour_manual(expression(lambda), 
                     values = c('steelblue', 'khaki3', 'coral'), 
                     labels = c(0, 0.5, 1))
@@ -296,26 +306,30 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
     bind_rows(re_RMSE) %>% 
     bind_rows(bb_RMSE) %>% 
     filter(n %in% c(20, 100), par_true == 1) %>%
-    ggplot(aes(x = as.factor(n), y = RMSE, colour = model)) +
+    ggplot(aes(x = as.factor(n), y = RMSE, colour = model, fill = model)) +
     geom_hline(yintercept = 0, colour = 'grey50') +
     geom_linerange(aes(lty = beta, ymin = 0, ymax = RMSE), position = position_dodge(width = 0.6)) +
-    geom_point(aes(shape = beta), position = position_dodge(width = 0.6)) +
-    theme(legend.position = 'inside',
+    geom_point(size = 1.5, aes(shape = beta), position = position_dodge(width = 0.6), col = 'black') +
+    theme(legend.position = '',
           legend.position.inside = c(0.95,0.8),
           legend.title.position = 'left',
           legend.key.spacing = unit(0.1, 'cm'),
           legend.background = element_blank()) +
     ylim(0,11.5) + 
-    scale_shape_manual(values = c(16, 17)) +
-    scale_linetype_manual(values = c(1,5)) +
+    xlab('n') +
+    scale_shape_manual(values = c(21, 24)) +
+    scale_linetype_manual(values = c(1,1)) +
     scale_colour_manual('model', 
+                        values = c('steelblue', 'khaki3', 'coral'), 
+                        labels = c(0, 0.5, 1)) + 
+    scale_fill_manual('model', 
                       values = c('steelblue', 'khaki3', 'coral'), 
                       labels = c(0, 0.5, 1)))
 
 
 ## COVERAGE #### COVERAGE ##RMSE_plot_normal
 re_COV <- results_re %>%
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
@@ -329,7 +343,7 @@ ss_COV <- results_ss %>%
   filter(par == 'lambda')
 
 bb_COV <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
@@ -405,13 +419,13 @@ ss_BIAS <- results_ss %>%
   filter(par == 'lambda')
 
 re_BIAS <- results_re %>% 
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   filter(par == 'lambda')
 
 bb_BIAS <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   filter(par == 'lambda')
@@ -425,6 +439,7 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
         legend.key.spacing = unit(0.1, 'cm'),
         legend.background = element_blank()) +
   xlab('n') +
+  ylab('bias') +
   ylim(-1, 1) +
   scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1))   
 
@@ -436,18 +451,27 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
                y = BIAS, 
                fill = as.factor(model))) +
     geom_hline(yintercept = 0, lty = 5, col = 'grey') +
-    stat_summary(aes(lty = beta, shape = beta), 
-                 geom = 'pointrange',
-                 fun.data = mean_sdl,
+    stat_summary(aes(lty = beta, colour = model), 
+                 geom = 'linerange',
+                 fun.data = function(x) return(data.frame(ymin = mean(x)-sd(x), ymax = mean(x) + sd(x))),
+                 position = position_dodge(width = 0.7)) +
+    stat_summary(aes(shape = beta), 
+                 geom = 'point',
+                 size = 1.5,
+                 fun = 'mean',
                  position = position_dodge(width = 0.7)) +
     theme(legend.position = '',
           legend.key.spacing = unit(0.1, 'cm'),
           legend.background = element_blank()) +
     xlab('n') +
+    ylab('bias') +
     ylim(-1,1) + 
     scale_shape_manual(values = c(21, 24)) +
-    scale_linetype_manual(values = c(1,5)) +
+    scale_linetype_manual(values = c(1,1)) +
     scale_fill_manual('model', 
+                      values = c('steelblue', 'khaki3', 'coral'), 
+                      labels = c(0, 0.5, 1)) +
+    scale_colour_manual('model', 
                       values = c('steelblue', 'khaki3', 'coral'), 
                       labels = c(0, 0.5, 1)))
 
@@ -460,14 +484,14 @@ ss_RMSE <- results_ss %>%
   filter(par == 'lambda')
 
 re_RMSE <- results_re %>% 
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n,par, par_true, beta, model) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
 bb_RMSE <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n,par, par_true, beta, model) %>%
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
@@ -485,7 +509,7 @@ RMSE_plot_skewed <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
         legend.background = element_blank()) +
   ylim(1,11.5) + 
   scale_shape_manual(values = c(21, 24)) +
-  scale_linetype_manual(values = c(1,5)) +
+  scale_linetype_manual(values = c(1,1)) +
   scale_colour_manual(expression(lambda), 
                       values = c('steelblue', 'khaki3', 'coral'), 
                       labels = c(0, 0.5, 1))
@@ -495,40 +519,44 @@ RMSE_plot_skewed <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
     bind_rows(re_RMSE) %>% 
     bind_rows(bb_RMSE) %>% 
     filter(n %in% c(20, 100), par_true == 1) %>%
-    ggplot(aes(x = as.factor(n), y = RMSE, colour = model)) +
+    ggplot(aes(x = as.factor(n), y = RMSE, colour = model, fill = model)) +
     geom_hline(yintercept = 0, colour = 'grey50') +
     geom_linerange(aes(lty = beta, ymin = 0, ymax = RMSE), position = position_dodge(width = 0.6)) +
-    geom_point(aes(shape = beta), position = position_dodge(width = 0.6)) +
-    theme(legend.position = 'inside',
+    geom_point(size = 1.5, aes(shape = beta), position = position_dodge(width = 0.6), col = 'black') +
+    theme(legend.position = '',
           legend.position.inside = c(0.95,0.8),
           legend.title.position = 'left',
           legend.key.spacing = unit(0.1, 'cm'),
           legend.background = element_blank()) +
     ylim(0,11.5) + 
-    scale_shape_manual(values = c(16, 17)) +
-    scale_linetype_manual(values = c(1,5)) +
+    xlab('n') +
+    scale_shape_manual(values = c(21, 24)) +
+    scale_linetype_manual(values = c(1,1)) +
     scale_colour_manual('model', 
                         values = c('steelblue', 'khaki3', 'coral'), 
-                        labels = c(0, 0.5, 1)))
+                        labels = c(0, 0.5, 1)) + 
+    scale_fill_manual('model', 
+                        values = c('steelblue', 'khaki3', 'coral'), 
+                        labels = c(0, 0.5, 1)) )
 
 
 ## COVERAGE ##
 re_COV <- results_re %>%
-  mutate(model = 'GDUM\n(site random effects)') %>% 
+  mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda') 
 
 ss_COV <- results_ss %>% 
-  mutate(model = ' Site uniqueness') %>% 
+  mutate(model = 'Site uniqueness') %>% 
   group_by(n, par, par_true, beta, model) %>% 
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda')
 
 bb_COV <- results_bb %>% 
-  mutate(model = 'GDUM\n(Bayesian bootstrapping)') %>% 
+  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
   mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
@@ -553,7 +581,7 @@ COV_plot_skewed <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
     ggplot(aes(x = as.factor(n), y = coverage, colour = model)) +
     geom_hline(yintercept = 0.95, colour = 'grey50') +
     geom_point(aes(shape = beta), position = position_dodge(width = 0.6)) +
-    theme(legend.position = 'inside',
+    theme(legend.position = '',
           legend.position.inside = c(0.95,0.8),
           legend.title.position = 'left',
           legend.key.spacing = unit(0.1, 'cm'),
@@ -577,7 +605,8 @@ set.seed(123)
     theme_classic() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
-          axis.line.y = element_blank()) + 
+          axis.line.y = element_blank(),
+          text = element_text(size = 8)) + 
     xlab('w') +
     xlim(-6,4) +
     scale_y_continuous('frequency', expand = c(0,0)))
@@ -589,18 +618,48 @@ set.seed(123)
     xlim(-6,4) +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
-          axis.line.y = element_blank()) + 
+          axis.line.y = element_blank(),
+          text = element_text(size = 8)) + 
     scale_y_continuous('frequency', expand = c(0,0)))
 
 
-cowplot::plot_grid(dist_normal, dist_skewed,
+
+legend_plot <- ss_RMSE %>% 
+  bind_rows(re_RMSE) %>% 
+  bind_rows(bb_RMSE) %>% 
+  filter(n %in% c(20, 100), par_true == 1) %>%
+  ggplot(aes(x = as.factor(n), y = RMSE, 
+             colour = model, fill = model,
+             shape = beta, linetype = beta)) +
+  geom_point(size = 3) +
+  geom_linerange(aes(ymin = 0, ymax = RMSE), size = 1) +
+  scale_shape_manual('', values = c(21, 24)) +
+  scale_linetype_manual('', values = c(1, 1), guide = 'none') +
+  scale_colour_manual('', 
+                      values = c('steelblue', 'khaki3', 'coral')) + 
+  scale_fill_manual('', 
+                    values = c('steelblue', 'khaki3', 'coral')) +
+  # move geoms outside visible panel
+  coord_cartesian(xlim = c(-1, -0.5), ylim = c(-1, -0.5)) +
+  theme_void() +
+  theme(
+    text = element_text(size = 8),
+    legend.position = "inside",
+    legend.direction = 'vertical',
+    legend.title.position = "left",
+    legend.key.spacing = unit(0.5, 'cm'),
+    legend.spacing =  unit(0.5, 'cm'),
+    legend.background = element_blank()
+  )
+
+cowplot::plot_grid(cowplot::plot_grid(dist_normal, dist_skewed,
                    RMSE_plot_normal_sub, RMSE_plot_skewed_sub,
                    BIAS_plot_normal_sub, BIAS_plot_skewed_sub,
                    ncol = 2, 
                    align = 'h', 
                    rel_heights = c(2,3,3),
-                   labels = c('A', 'B', 'C', 'D', 'E', 'F'))
-ggsave('figs/simulation_study_skew.png', width = 15, height = 20, units = 'cm', dpi = 600)
+                   labels = c('A', 'B', 'C', 'D', 'E', 'F')), legend_plot, ncol = 2, rel_widths = c(3,1))
+ggsave('figs/simulation_study_sum.png', width = 19, height = 15, units = 'cm', dpi = 600)
 
 ### ERROR BETA ####
 
