@@ -7,8 +7,22 @@
 
 
 # Load data
+set.seed(2)
 library(gllvm)
 library(vegan)
+library(ggplot2)
+theme_set(theme_bw())
+theme_update(strip.background = element_blank(), 
+             text = element_text(size = 8),
+             panel.grid = element_blank())
+annotation_custom2 <- function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data) 
+{
+  layer(data = data, stat = StatIdentity, position = PositionIdentity, 
+        geom = ggplot2:::GeomCustomAnn,
+        inherit.aes = TRUE, params = list(grob = grob, 
+                                          xmin = xmin, xmax = xmax, 
+                                          ymin = ymin, ymax = ymax))
+}
 
 data('microbialdata', package = 'gllvm')
 env <- microbialdata$Xenv
@@ -24,15 +38,16 @@ sp_dist <- as.matrix(vegdist(sp, binary = T))
 
 # ORDINATION 1
 library(MASS)
-kk_ord <- monoMDS(vegdist(sp, binary = T))
+kk_ord <- metaMDS(sp_dist, trymax = 200)
+kk_ord$stress
 points <- data.frame(kk_ord$points)
 points$pH <- env$pH
 points$LCBD <- adespatial::LCBD.comp(vegdist(sp, binary = T))$LCBD
 
 (plot_NMDS <- ggplot(points, aes(x = MDS1, y = MDS2, fill = pH )) + 
     theme_void() +
-    ylab('MDS2') +
-    xlab('MDS1') +
+    ylab('') +
+    xlab('') +
     theme(legend.position = '',
           plot.margin = unit(c(1,1,1,1)*0.2, 'cm'),
           text = element_text(size = 8),
@@ -41,19 +56,18 @@ points$LCBD <- adespatial::LCBD.comp(vegdist(sp, binary = T))$LCBD
           panel.border = element_rect(fill = 'transparent')) +
     geom_hline(yintercept = 0, colour = 'grey') + 
     geom_vline(xintercept = 0, colour = 'grey') + 
-    geom_point(shape = 21, aes(size  = LCBD)) + 
+    geom_point(shape = 21) + 
     coord_equal() +
-    scale_size_continuous(range = c(0.5,2)) +
-    scale_fill_gradientn(colours = c('steelblue4', 'grey90', 'coral2')))
+    scale_fill_gradientn(colours = c('steelblue4', 'grey90', 'darkred')))
 
 
 # LCBD vs. pH 
 
-plot_ushape <- ggplot(points, aes(y = LCBD, x = pH)) + 
+(plot_ushape <- ggplot(points, aes(y = LCBD, x = pH)) + 
   theme(panel.grid = element_blank(), aspect.ratio = 1, legend.position = '') +
   geom_smooth(colour = 'black', se = T, method = 'lm', formula = y~poly(x, 2)) + 
-  scale_fill_gradientn(colours = c('steelblue4', 'grey90', 'coral2')) +
-  geom_point(aes(fill = pH), shape = 21, size = 2)
+  scale_fill_gradientn(colours = c('steelblue4', 'grey90', 'darkred')) +
+  geom_point(aes(fill = pH), shape = 21, size = 2))
 
 
 ### 2 DISSIMILARITY GRADIENT REMOVED ####
@@ -80,20 +94,19 @@ dist_matrix <- dist_matrix + abs(min(dist_matrix)) + 0.001
 diag(dist_matrix) <- 0
 
 ##### RESIDUAL DISS. ####
-
-kk_ord2 <- monoMDS(as.dist(dist_matrix))
+kk_ord2 <- metaMDS(as.dist(dist_matrix), trymax = 200)
+kk_ord2$stress
 points2 <- data.frame(kk_ord2$points)
 rot <- procrustes(points2[,c(1,2)], points[,c(1,2)], scale = F)
 points2_rot <- data.frame(as.matrix(points2) %*% rot$rotation)
 colnames(points2_rot) <- names(points2)
 points2_rot$pH <- env$pH
-
 points2_rot$LCBD <-  adespatial::LCBD.comp(as.dist(dist_matrix))$LCBD
 
 (plot_NMDS2 <- ggplot(points2_rot, aes(x = MDS1, y = MDS2, fill = pH )) + 
     theme_void() +
-    ylab('MDS2') +
-    xlab('MDS1') +
+    ylab('') +
+    xlab('') +
     theme(legend.position = '',
           plot.margin = unit(c(1,1,1,1)*0.2, 'cm'),
           text = element_text(size = 8),
@@ -103,23 +116,25 @@ points2_rot$LCBD <-  adespatial::LCBD.comp(as.dist(dist_matrix))$LCBD
     geom_hline(yintercept = 0, colour = 'grey') + 
     geom_vline(xintercept = 0, colour = 'grey') + 
     coord_equal() +
-    geom_point(shape = 21, aes(size  = LCBD)) + 
-    scale_size_continuous(range = c(0.5,2)) +
-    scale_fill_gradientn(colours = c('steelblue4', 'grey90','coral2')))
+    geom_point(shape = 21) + 
+    scale_fill_gradientn(colours = c('steelblue4', 'grey90','darkred')))
 
 
-plot_ushape2 <- ggplot(points2_rot, aes(y = LCBD, x = pH)) + 
+(plot_ushape2 <- ggplot(points2_rot, aes(y = LCBD, x = pH)) + 
   theme(panel.grid = element_blank(), aspect.ratio = 1, legend.position = '') +
   geom_smooth(colour = 'black', se = T, method = 'lm', formula = y~poly(x, 2)) + 
-  scale_fill_gradientn(colours = c('steelblue4','grey90','coral2')) +
-  geom_point(aes(fill = pH), shape = 21, size = 2)
+  scale_fill_gradientn(colours = c('steelblue4','grey90','darkred')) +
+  geom_point(aes(fill = pH), shape = 21, size = 2))
 
 
-plot_grid(plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('A', 'B')), 
-          plot_grid(plot_NMDS2, plot_ushape2, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('B', 'C')))
+cowplot::plot_grid(cowplot::plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('A', 'C')), 
+                   cowplot:: plot_grid(plot_NMDS2, plot_ushape2, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('B', 'D')))
+
+
+ggsave('figs/microbial_naivee.png', width = 15, height = 8, units = 'cm', dpi = 600)
+
 
 #### FULL MODEL ####
-
 m <- gdmm(Y = sp,
           X = env, 
           diss_formula = ~ isp(pH, degree = 2),
@@ -143,10 +158,10 @@ newdata_X =  data.frame(pH = pH)
 
 pred_lcbd[[length(pred_lcbd) + 1]] <- 
   data.frame(predict(m,
-                     new_X = newdata_X,
-                     new_W = newdata_W,
+                     n_sim = 5000,
+                     new_X = as.matrix(newdata_X),
+                     new_W = as.matrix(newdata_W),
                      component = 'uniqueness',
-                     re_sd = c('site'),
                      scale_uniq = T,
                      type = 'response'),
              var = 'pH',
@@ -159,6 +174,7 @@ newdata_X =  data.frame(pH = pH)
 
 pred_lcbd[[length(pred_lcbd) + 1]] <- 
   data.frame(predict(m,
+                     n_sim = 5000,
                      new_X = newdata_X,
                      new_W = newdata_W,
                      component = 'uniqueness',
@@ -167,7 +183,7 @@ pred_lcbd[[length(pred_lcbd) + 1]] <-
                      type = 'response'),
              var = 'pH',
              value = pH,
-             which = 'diss. gradient only')
+             which = 'dissimilarity gradient only')
 
 
 # uniq effect temp (total)
@@ -176,6 +192,7 @@ newdata_X =  data.frame(pH = mean_pH )
 
 pred_lcbd[[length(pred_lcbd) + 1]] <- 
   data.frame(predict(m,
+                     n_sim = 5000,
                      new_X = newdata_X,
                      new_W = newdata_W,
                      component = 'uniqueness',
@@ -184,57 +201,58 @@ pred_lcbd[[length(pred_lcbd) + 1]] <-
                      type = 'response'),
              var = 'pH',
              value = pH,
-             which = 'direct only')
+             which = 'direct effect only')
 
 
 pred_lcbd <- do.call(rbind, pred_lcbd)
 
 # FULL
 (exp_LCBD_plot <- ggplot(subset(pred_lcbd, which == ' full'), aes(x = value, y = mean)) + 
-    geom_point(data = points, aes(x = pH, y = LCBD), shape = 21, fill = 'white') +
-    geom_line(col = 'black') +
-    ylab('E(LCBD)') +
+    geom_point(data = points, aes(x = pH, y = LCBD), col = 'darkred', alpha = 0.5) +
+    geom_line(col = 'black', linewidth = 1) +
+    ylab('LCBD') +
     xlab('pH') +
     theme(strip.placement = 'outside',
           legend.position = '',panel.grid = element_blank(),
           aspect.ratio = 1) +
-    geom_ribbon(aes(ymin = CI.2.5., ymax = CI.97.5.), fill = 'transparent', lty = 5, col = 'black'))
+    geom_ribbon(aes(ymin = CI.2.5., ymax = CI.97.5.), alpha = 0.1) +
+    geom_ribbon(aes(ymin = CI.25., ymax = CI.75.), alpha = 0.3))
 
 # Partial ###
 
-(partial_LCBD_plot <- ggplot(subset(pred_lcbd, which != ' full'), aes(x = value, y = mean)) + 
-    geom_point(aes(col = which), shape = 21) +
-    geom_line(aes(col = which)) +
-    ylab('E(LCBD)') +
-    xlab('pH') +
-    theme(strip.placement = 'outside',
-          strip.background = element_rect(colour = 'grey20', fill = c('transparent')),
-          aspect.ratio = 1,
-          panel.grid = element_blank(),
-          legend.position = '') +
-    geom_ribbon(aes(ymin = CI.2.5., ymax = CI.97.5., col = which), fill = 'transparent', lty = 5) +
-    scale_colour_manual(values = c('orange2', 'steelblue')) + 
-    facet_wrap(~which, scales = 'free_y', ncol = 1))
 
-diss_gradients <- do.call(rbind, diss_gradient(m0, CI_quant = c(0.95, 0.5)))
-
-(fx_plot <- ggplot(diss_gradients, aes(x = x, y = f_x)) + 
+fx_plot <- ggplot(diss_gradients, aes(x = x, y = f_x)) + 
     ylab('f(pH)') +
     xlab('pH') +
     theme(strip.placement = 'outside',
           panel.grid = element_blank(),
-          aspect.ratio = 1) +
-    geom_ribbon(aes(ymin = `CI 2.5%`, ymax = `CI 97.5%`), fill = 'steelblue', alpha = 0.1) +
-    geom_ribbon(aes(ymin = `CI 25%`, ymax = `CI 75%`), fill = 'steelblue', alpha = 0.2) +
-    geom_line(col = 'steelblue4') )
+          aspect.ratio = 0.75,
+          plot.background = element_blank()) +
+    geom_ribbon(aes(ymin = `CI 2.5%`, ymax = `CI 97.5%`), fill = 'black', alpha = 0.1) +
+    geom_ribbon(aes(ymin = `CI 25%`, ymax = `CI 75%`), fill = 'black', alpha = 0.2) +
+    geom_line(col = 'black', linewidth = 0.4)
+
+diss_gradients <- do.call(rbind, diss_gradient(m0, CI_quant = c(0.95, 0.5)))
+
+(partial_LCBD_plot <- ggplot(subset(pred_lcbd, which != ' full')) + 
+    ylab('LCBD') +
+    xlab('pH') +
+    theme(strip.placement = 'outside',
+          strip.background = element_blank(),
+          aspect.ratio = 1,
+          panel.grid = element_blank(),
+          legend.position = '') +
+    geom_ribbon(aes(ymin = CI.2.5., ymax = CI.97.5., x = value), alpha = 0.1) +
+    geom_ribbon(aes(ymin = CI.25., ymax = CI.75.,x = value), alpha = 0.3) +
+    geom_line(aes(x = value, y = mean)) +
+    facet_wrap(~which, ncol = 2, scales = 'free_y'))   # location on y-axis)
+  
+cowplot::plot_grid(cowplot::plot_grid(exp_LCBD_plot, cowplot::plot_grid(fx_plot,partial_LCBD_plot,ncol = 1, rel_heights = c(1,1.2), labels = c('B','C')), labels = 'A'))
+
+ggsave('figs/microbial_model_full.png', width = 18, height = 9, units = 'cm', dpi = 600)
 
 
-plot_grid(plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heights = c(2,4), align = 'v', labels = c('A', 'B')), 
-          plot_grid(plot_NMDS2, plot_ushape2, ncol = 1, rel_heights = c(2,4), align = 'v', labels = c('C', 'D')))
-
-ggsave('figs/microbial_naivee.pdf', width = 15, height = 8, units = 'cm', dpi = 600)
-ggsave('figs/microbial_naivee.png', width = 15, height = 8, units = 'cm', dpi = 600)
-
+### 1 to 1 line ### 
 LCBD_pred <- data.frame(predict(m, component = 'uniqueness'))
 LCBD_pred$real_LCBD <- points$LCBD
 
@@ -246,10 +264,10 @@ LCBD_pred$real_LCBD <- points$LCBD
     geom_linerange(aes(ymax = `CI.97.5.`, ymin = `CI.2.5.`), colour = 'grey') +
     geom_point(size = 1, shape = 21, fill = 'white'))
 
+
 plot_grid(plot_grid(exp_LCBD_plot, fx_plot, rel_heights = c(1,1), ncol = 1, align = 'v', labels = c('A', 'B')), partial_LCBD_plot, plot_1to1, ncol  = 3, labels = c('','C', 'D'))
 ggsave('figs/microbial_model.pdf', width = 18, height = 10, units = 'cm', dpi = 600)
 ggsave('figs/microbial_model.svg', width = 18, height = 10, units = 'cm', dpi = 600)
-
 
 
 diss_gradients <- diss_gradient(m0, CI_quant = c(0.95, 0.5))$pH

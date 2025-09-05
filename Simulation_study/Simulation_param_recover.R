@@ -149,6 +149,7 @@ results_normal <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
 
 stopCluster(cl)
 saveRDS(results_normal, 'Simulation_study/results.RDS')
+results_normal <- readRDS('Simulation_study/results.RDS')
 
 cl <- makeCluster(5)
 registerDoParallel(cl)
@@ -169,6 +170,7 @@ results_skewed <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
 }
 
 saveRDS(results_skewed, 'Simulation_study/results_skewed.RDS')
+results_skewed <- readRDS('Simulation_study/results_skewed.RDS')
 
 stopCluster(cl)
 
@@ -181,18 +183,14 @@ results_ss <- results_ss %>% mutate(scenario = rep(1:nrow(scenarios), each = 2))
 
 results_bb <- do.call(rbind,results_normal[names(results_normal) == 'bb_model'])
 results_bb <- results_bb %>% mutate(scenario = rep(1:nrow(scenarios), each = 3)) %>% inner_join(scenarios)
-
-
 results_ss$par_recov_scale <- ifelse(results_ss$par == 'lambda', (results_ss$n / (results_ss$n - 2)) * results_ss$par_recov, results_ss$par_recov)
 results_ss$par_true_scale <- ifelse(results_ss$par == 'lambda', ((results_ss$n -2) / (results_ss$n)) * results_ss$par_true, results_ss$par_true)
 results_ss$par_min <- (results_ss$par_recov - (1.96 * results_ss$par_sd))
 results_ss$par_max <- results_ss$par_recov + (1.96 * results_ss$par_sd)
 results_ss$coverage <- (results_ss$par_true_scale <= results_ss$par_max) & (results_ss$par_true_scale >= results_ss$par_min)
-
 results_re$par_min = results_re$par_recov - (1.96*results_re$par_sd)
 results_re$par_max = results_re$par_recov + (1.96*results_re$par_sd)
 results_re$coverage <- (results_re$par_true <= results_re$par_max) & (results_re$par_true >= results_re$par_min)
-
 results_bb$coverage <- (results_bb$par_true <= results_bb$par_high) & (results_bb$par_true >= results_bb$par_low)
 
 
@@ -200,21 +198,21 @@ results_bb$coverage <- (results_bb$par_true <= results_bb$par_high) & (results_b
 
 #### BIAS ####
 ss_BIAS <- results_ss %>%
-  mutate(model = ' Site uniqueness') %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(model = 'conventional uniqueness model') %>% 
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   mutate(BIAS = par_recov_scale - par_true) %>%
   filter(par == 'lambda')
 
 re_BIAS <- results_re %>% 
   mutate(model = 'GDUM (site random effects)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   filter(par == 'lambda')
 
 bb_BIAS <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   filter(par == 'lambda')
 
 BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>% 
@@ -228,7 +226,7 @@ BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
   xlab('n') +
   ylab('bias') +
   ylim(-1, 1) +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1))   
+  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1))   
 
 (BIAS_plot_normal_sub <- ss_BIAS %>% 
     bind_rows(re_BIAS) %>% 
@@ -264,23 +262,23 @@ BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
 
 ### ERROR ####
 ss_RMSE <- results_ss %>%
-  mutate(model = ' Site uniqueness') %>% 
+  mutate(model = 'conventional uniqueness model') %>% 
   group_by(n, par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov_scale - par_true)^2))) %>%
   filter(par == 'lambda')
 
 re_RMSE <- results_re %>% 
   mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n,par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
 bb_RMSE <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n,par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
@@ -289,7 +287,7 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
   geom_path() +
   geom_jitter(width = 0.1, height = 0) +
   facet_grid(beta~model) +
-  theme(legend.position = '',
+  theme(legend.position = 'inside',
         legend.position.inside = c(0.95,0.8),
         legend.title.position = 'left',
         legend.key.spacing = unit(0.1, 'cm'),
@@ -327,25 +325,25 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
                       labels = c(0, 0.5, 1)))
 
 
-## COVERAGE #### COVERAGE ##RMSE_plot_normal
+## COVERAGE #### 
 re_COV <- results_re %>%
   mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda') 
 
 ss_COV <- results_ss %>% 
-  mutate(model = ' Site uniqueness') %>% 
+  mutate(model = 'conventional uniqueness model') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda')
 
 bb_COV <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda')
 
@@ -356,7 +354,7 @@ COV_plot_normal <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
   facet_grid(beta~model)+ 
   theme(legend.position = '') +
   ylab('coverage (%)') +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1)) +
+  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1)) +
   #geom_hline(yintercept = qbinom(c(0.025, 0.975), size = 1000, prob = 0.95) / 1000, lty = 2, colour = 'grey40') 
   geom_hline(yintercept = 0.95, lty = 2, colour = 'grey')
 
@@ -385,7 +383,7 @@ cowplot::plot_grid(RMSE_plot_normal, BIAS_plot_normal, COV_plot_normal, ncol = 1
 ggsave('figs/simulation_study.png', width = 15, height = 20, units = 'cm', dpi = 600)
 
 
-#### SKEWED DATA ###
+#### SKEWED DATA ####
 
 results_re <- do.call(rbind,results_skewed[names(results_skewed) == 're_model'])
 results_re <- results_re %>% mutate(scenario = rep(1:nrow(scenarios), each = 3)) %>% inner_join(scenarios)
@@ -413,21 +411,21 @@ results_bb$coverage <- (results_bb$par_true <= results_bb$par_high) & (results_b
 
 ### BIAS ####
 ss_BIAS <- results_ss %>%
-  mutate(model = ' Site uniqueness') %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(model = 'conventional uniqueness model') %>% 
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   mutate(BIAS = par_recov_scale - par_true) %>%
   filter(par == 'lambda')
 
 re_BIAS <- results_re %>% 
   mutate(model = 'GDUM (site random effects)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   filter(par == 'lambda')
 
 bb_BIAS <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   mutate(BIAS = par_recov - par_true) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   filter(par == 'lambda')
 
 BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>% 
@@ -441,7 +439,7 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
   xlab('n') +
   ylab('bias') +
   ylim(-1, 1) +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1))   
+  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1))   
 
 (BIAS_plot_skewed_sub <- ss_BIAS %>% 
     bind_rows(re_BIAS) %>% 
@@ -477,23 +475,23 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
 
 ### ERROR ####
 ss_RMSE <- results_ss %>%
-  mutate(model = ' Site uniqueness') %>% 
+  mutate(model = 'conventional uniqueness model') %>% 
   group_by(n, par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov_scale - par_true)^2))) %>%
   filter(par == 'lambda')
 
 re_RMSE <- results_re %>% 
   mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n,par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
 bb_RMSE <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n,par, par_true, beta, model) %>%
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
   filter(par == 'lambda')
 
@@ -540,25 +538,25 @@ RMSE_plot_skewed <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
                         labels = c(0, 0.5, 1)) )
 
 
-## COVERAGE ##
+#### COVERAGE ####
 re_COV <- results_re %>%
   mutate(model = 'GDUM (site random effects)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda') 
 
 ss_COV <- results_ss %>% 
   mutate(model = 'Site uniqueness') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda')
 
 bb_COV <- results_bb %>% 
   mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
   group_by(n, par, par_true, beta, model) %>% 
-  mutate(beta = ifelse(beta > 0, 'dissimilarity gradient', ' no dissimilarity gradient')) %>%
+  mutate(beta = ifelse(beta > 0, 'dissimilarity\ngradient', ' no dissimilarity\ngradient')) %>%
   summarise(coverage = sum(coverage)/n()) %>% 
   filter(par == 'lambda')
 
@@ -569,7 +567,7 @@ COV_plot_skewed <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
   facet_grid(beta~model)+ 
   theme(legend.position = '') +
   ylab('coverage (%)') +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'orange'), labels = c(0, 0.5, 1)) +
+  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1)) +
   #geom_hline(yintercept = qbinom(c(0.025, 0.975), size = 1000, prob = 0.95) / 1000, lty = 2, colour = 'grey40') 
   geom_hline(yintercept = 0.95, lty = 2, colour = 'grey')
 
@@ -680,10 +678,8 @@ RMSE_plot <- re_RMSE %>% bind_rows(bb_RMSE) %>%
   geom_path() +
   geom_jitter(width =1, height = 0) +
   facet_grid(lambda~model) +
-  theme(legend.position = 'inside',
-        legend.position.inside = c(0.1,0.95),
-        legend.background = element_blank()) +
-  scale_colour_manual('', values = c('steelblue4', 'orange'), labels = paste0('\03bb = ', c(0,1))) 
+  theme() +
+  scale_colour_manual('', values = c('steelblue4', 'coral'), labels = paste0('beta = ', c(0,1))) 
 
 
 
