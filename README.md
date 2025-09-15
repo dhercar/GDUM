@@ -2,7 +2,7 @@
 
 This repository contains code associated with **Hernández-Carrasco et al.** manuscript presenting *Generalised Dissimilarity Uniqueness Models (GDUM)*.
 
-NOTE: An installation of the **GDUM R package** is required to run the scripts in this repository. GDUM can be installed from GitHub using:  
+NOTE: An installation of the **gdmmTMB R package** is required to run the scripts in this repository. `gdmmTMB` can be installed from GitHub using:  
 
 ```r
 devtools::install_github("dhercar/gdmmTMB")
