@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/931844817.svg)](https://doi.org/10.5281/zenodo.17128110)
+
 This repository contains code associated with **Hernández-Carrasco et al.** manuscript presenting *Generalised Dissimilarity Uniqueness Models (GDUM)*.
 
 NOTE: An installation of the **GDUM R package** is required to run the scripts in this repository. GDUM can be installed from GitHub using:  
