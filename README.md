@@ -1,4 +1,14 @@
-Code associatiated with Hernández-Carrasco et al. manuscript presenting Generalised Dissimilarity Uniqueness Models (GDUM).
+This repository contains code associated with **Hernández-Carrasco et al.** manuscript presenting *Generalised Dissimilarity Uniqueness Models (GDUM)*.
 
-- The script `Simulation_study/Simulation_param_recover.R` performs the simulation study.
-- The scripts in `Case-study/` include (1) code to recreate Figure 1 (`conceptual_fig.R`), (2) the two case studies (`CaseStudyMicrobial.R` and `CaseStudySW.R`)
+NOTE: An installation of the **GDUM R package** is required to run the scripts in this repository. GDUM can be installed from GitHub using:  
+
+```r
+devtools::install_github("dhercar/gdmmTMB")
+```
+
+### Contents
+- `Simulation_study/Simulation_param_recover.R` — performs the simulation study.  
+- `Case-study/` — contains scripts:  
+  - `conceptual_fig.R` — recreates Fig. 1 
+  - `CaseStudyMicrobial.R` — Microbial communities along a pH gradient (case study 1)
+  - `CaseStudySW.R` — Plant community change along environmental gradients (case study 2)
