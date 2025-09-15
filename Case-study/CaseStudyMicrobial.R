@@ -126,7 +126,6 @@ cowplot::plot_grid(cowplot::plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heig
 ggsave('figs/microbial_naive.eps', device = cairo_ps, width = 15, height = 8, units = 'cm', dpi = 1200)
 ggsave('figs/microbial_naive.png', width = 15, height = 8, units = 'cm', dpi = 1200)
 
-
 #### FULL MODEL ####
 m <- gdmm(Y = sp,
           X = env, 
