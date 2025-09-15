@@ -1,18 +1,25 @@
-# Author: Daniel Hernaandez Carrasco
+# Author: Daniel Hernandez Carrasco
 # Email: dani.hc97@gmail.com
 # Created: 8/13/2025
 # License: MIT (see LICENSE file for details)
 
-# Description: This script performs a simulation study comparing different approaches used to model xommunity uniqueness
+# Description: This script performs a simulation study comparing GDUM to conventional models of community uniqueness
 
+# packages
 library(gdmmTMB)
 library(doParallel)
 library(ggplot2)
+library(tidyverse)
+library(adespatial)
+n_cores = 2  # specify cores
+
+#plotting preferences
 theme_set(theme_bw())
 theme_update(strip.background = element_blank(),
              text = element_text(size =7),
              panel.grid = element_blank())
 
+# simulating data and fitting models given specified parameters
 sim_gdmm_data <- function(n = NULL, # sample size
                           lambda = NULL, # effect size (uniqueness)
                           beta = NULL, # effect size (dissimilarity),
@@ -117,70 +124,66 @@ sim_gdmm_data <- function(n = NULL, # sample size
 
 
 scenarios <-  expand.grid(n = c(20, 50, 100), 
-                          lambda = c(0, 0.5, 1), # effect size (uniqueness)
-                          beta = c(0, 1), # effect size (dissimilarity),
-                          m = 1,
+                          lambda = c(0, 0.5, 1), # combination of effect size (uniqueness)
+                          beta = c(0, 1), # combination of effect size (dissimilarity),
+                          m = 1, # number of predictors
                           sim = 1:1000,
                           beta_0 = 0,
                           sd_pair = 0.5,
                           sd_site = 0.5) 
-
+# id for different scenarios
 scenarios$scenario <- 1:nrow(scenarios)
 
-library(doParallel)
-
-# Set up cluster
-cl <- makeCluster(5)
-registerDoParallel(cl)
-
-results_normal <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
-  scenario <- scenarios[i,]
-  library(gdmmTMB)
-  sim_gdmm_data(
-    n = scenario$n,
-    lambda = scenario$lambda,
-    beta = scenario$beta,
-    m = scenario$m,
-    beta_0 = scenario$beta_0,
-    sd_pair = scenario$sd_pair,
-    sd_site = scenario$sd_site
-  )
+if(!file.exists('Simulation_study/results.RDS')){
+  cl <- makeCluster(n_cores)
+  registerDoParallel(cl)
+  
+  results_normal <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
+    scenario <- scenarios[i,]
+    library(gdmmTMB)
+    sim_gdmm_data(
+      n = scenario$n,
+      lambda = scenario$lambda,
+      beta = scenario$beta,
+      m = scenario$m,
+      beta_0 = scenario$beta_0,
+      sd_pair = scenario$sd_pair,
+      sd_site = scenario$sd_site
+    )
+  }
+  stopCluster(cl)
+  saveRDS(results_normal, 'Simulation_study/results.RDS')
 }
 
-stopCluster(cl)
-saveRDS(results_normal, 'Simulation_study/results.RDS')
-results_normal <- readRDS('Simulation_study/results.RDS')
-
-cl <- makeCluster(5)
-registerDoParallel(cl)
-
-results_skewed <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
-  scenario <- scenarios[i,]
-  library(gdmmTMB)
-  sim_gdmm_data(
-    n = scenario$n,
-    lambda = scenario$lambda,
-    beta = scenario$beta,
-    m = scenario$m,
-    beta_0 = scenario$beta_0,
-    sd_pair = scenario$sd_pair,
-    sd_site = scenario$sd_site,
-    skew_X = TRUE
-  )
+if(!file.exists('Simulation_study/results_skewed.RDS')){
+  cl <- makeCluster(n_cores)
+  registerDoParallel(cl)
+  
+  results_skewed <- foreach(i = 1:nrow(scenarios), .combine = 'c') %dopar% {
+    scenario <- scenarios[i,]
+    library(gdmmTMB)
+    sim_gdmm_data(
+      n = scenario$n,
+      lambda = scenario$lambda,
+      beta = scenario$beta,
+      m = scenario$m,
+      beta_0 = scenario$beta_0,
+      sd_pair = scenario$sd_pair,
+      sd_site = scenario$sd_site,
+      skew_X = TRUE
+    )
+  }
+  stopCluster(cl)
+  saveRDS(results_skewed, 'Simulation_study/results_skewed.RDS')
 }
 
-saveRDS(results_skewed, 'Simulation_study/results_skewed.RDS')
 results_skewed <- readRDS('Simulation_study/results_skewed.RDS')
-
-stopCluster(cl)
+results_normal <- readRDS('Simulation_study/results.RDS')
 
 results_re <- do.call(rbind,results_normal[names(results_normal) == 're_model'])
 results_re <- results_re %>% mutate(scenario = rep(1:nrow(scenarios), each = 3)) %>% inner_join(scenarios)
-
 results_ss <- do.call(rbind,results_normal[names(results_normal) == 'ss_model'])
 results_ss <- results_ss %>% mutate(scenario = rep(1:nrow(scenarios), each = 2)) %>% inner_join(scenarios)
-
-
 results_bb <- do.call(rbind,results_normal[names(results_normal) == 'bb_model'])
 results_bb <- results_bb %>% mutate(scenario = rep(1:nrow(scenarios), each = 3)) %>% inner_join(scenarios)
 results_ss$par_recov_scale <- ifelse(results_ss$par == 'lambda', (results_ss$n / (results_ss$n - 2)) * results_ss$par_recov, results_ss$par_recov)
@@ -192,9 +195,6 @@ results_re$par_min = results_re$par_recov - (1.96*results_re$par_sd)
 results_re$par_max = results_re$par_recov + (1.96*results_re$par_sd)
 results_re$coverage <- (results_re$par_true <= results_re$par_max) & (results_re$par_true >= results_re$par_min)
 results_bb$coverage <- (results_bb$par_true <= results_bb$par_high) & (results_bb$par_true >= results_bb$par_low)
-
-
-##### FULL COMBINATIONS ####
 
 #### BIAS ####
 ss_BIAS <- results_ss %>%
@@ -218,7 +218,7 @@ bb_BIAS <- results_bb %>%
 BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>% 
   ggplot(aes(x = as.factor(n), y = BIAS, colour = as.factor(par_true))) +
   geom_boxplot(outlier.size = 0.2) +
-  geom_hline(yintercept = 0, lty = 5, col = 'red')+
+  geom_hline(yintercept = 0, lty = 5, col = 'grey')+
   facet_grid(beta~model) +
   theme(legend.position = '',
         legend.key.spacing = unit(0.1, 'cm'),
@@ -226,7 +226,7 @@ BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
   xlab('n') +
   ylab('bias') +
   ylim(-1, 1) +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1))   
+  scale_colour_manual(expression(lambda), values = c('#2a0000', 'darkred', 'pink2'), labels = c(0, 0.5, 1))   
 
 (BIAS_plot_normal_sub <- ss_BIAS %>% 
     bind_rows(re_BIAS) %>% 
@@ -254,10 +254,10 @@ BIAS_plot_normal <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
     scale_shape_manual(values = c(21, 24)) +
     scale_linetype_manual(values = c(1,1)) +
     scale_fill_manual('model', 
-                      values = c('steelblue', 'khaki3', 'coral'), 
+                      values = c('steelblue', 'darkred', 'pink2'), 
                       labels = c(0, 0.5, 1)) +
     scale_colour_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1)))
 
 ### ERROR ####
@@ -296,7 +296,7 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
   scale_shape_manual(values = c(21, 24)) +
   scale_linetype_manual(values = c(1,1)) +
   scale_colour_manual(expression(lambda), 
-                    values = c('steelblue', 'khaki3', 'coral'), 
+                    values = c('#2a0000', 'darkred', 'pink2'), 
                     labels = c(0, 0.5, 1))
 
 
@@ -318,10 +318,10 @@ RMSE_plot_normal <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
     scale_shape_manual(values = c(21, 24)) +
     scale_linetype_manual(values = c(1,1)) +
     scale_colour_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1)) + 
     scale_fill_manual('model', 
-                      values = c('steelblue', 'khaki3', 'coral'), 
+                      values = c('steelblue', 'darkred', 'pink2'), 
                       labels = c(0, 0.5, 1)))
 
 
@@ -354,9 +354,9 @@ COV_plot_normal <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
   facet_grid(beta~model)+ 
   theme(legend.position = '') +
   ylab('coverage (%)') +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1)) +
+  scale_colour_manual(expression(lambda), values = c('#2a0000', 'darkred', 'pink2'), labels = c(0, 0.5, 1)) +
   #geom_hline(yintercept = qbinom(c(0.025, 0.975), size = 1000, prob = 0.95) / 1000, lty = 2, colour = 'grey40') 
-  geom_hline(yintercept = 0.95, lty = 2, colour = 'grey')
+  geom_hline(yintercept = 0.95, lty = 5, colour = 'grey')
 
 
 (COV_plot_normal_sub <- ss_COV %>% 
@@ -374,7 +374,7 @@ COV_plot_normal <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
     ylim(0,1) + 
     scale_shape_manual(values = c(16, 17)) +
     scale_colour_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1))
 )
 
@@ -431,7 +431,7 @@ bb_BIAS <- results_bb %>%
 BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>% 
   ggplot(aes(x = as.factor(n), y = BIAS, colour = as.factor(par_true))) +
   geom_boxplot(outlier.size = 0.2) +
-  geom_hline(yintercept = 0, lty = 5, col = 'red')+
+  geom_hline(yintercept = 0, lty = 5, col = 'grey')+
   facet_grid(beta~model) +
   theme(legend.position = '',
         legend.key.spacing = unit(0.1, 'cm'),
@@ -439,7 +439,7 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
   xlab('n') +
   ylab('bias') +
   ylim(-1, 1) +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1))   
+  scale_colour_manual(expression(lambda), values = c('#2a0000', 'darkred', 'pink2'), labels = c(0, 0.5, 1))   
 
 (BIAS_plot_skewed_sub <- ss_BIAS %>% 
     bind_rows(re_BIAS) %>% 
@@ -467,10 +467,10 @@ BIAS_plot_skewed <- ss_BIAS %>% bind_rows(re_BIAS) %>% bind_rows(bb_BIAS) %>%
     scale_shape_manual(values = c(21, 24)) +
     scale_linetype_manual(values = c(1,1)) +
     scale_fill_manual('model', 
-                      values = c('steelblue', 'khaki3', 'coral'), 
+                      values = c('steelblue', 'darkred', 'pink2'), 
                       labels = c(0, 0.5, 1)) +
     scale_colour_manual('model', 
-                      values = c('steelblue', 'khaki3', 'coral'), 
+                      values = c('steelblue', 'darkred', 'pink2'), 
                       labels = c(0, 0.5, 1)))
 
 ### ERROR ####
@@ -509,7 +509,7 @@ RMSE_plot_skewed <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
   scale_shape_manual(values = c(21, 24)) +
   scale_linetype_manual(values = c(1,1)) +
   scale_colour_manual(expression(lambda), 
-                      values = c('steelblue', 'khaki3', 'coral'), 
+                      values = c('#2a0000', 'darkred', 'pink2'), 
                       labels = c(0, 0.5, 1))
 
 
@@ -531,10 +531,10 @@ RMSE_plot_skewed <- ss_RMSE %>% bind_rows(re_RMSE) %>% bind_rows(bb_RMSE) %>%
     scale_shape_manual(values = c(21, 24)) +
     scale_linetype_manual(values = c(1,1)) +
     scale_colour_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1)) + 
     scale_fill_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1)) )
 
 
@@ -567,7 +567,7 @@ COV_plot_skewed <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
   facet_grid(beta~model)+ 
   theme(legend.position = '') +
   ylab('coverage (%)') +
-  scale_colour_manual(expression(lambda), values = c('steelblue', 'khaki3', 'coral'), labels = c(0, 0.5, 1)) +
+  scale_colour_manual(expression(lambda), values = c('#2a0000', 'darkred', 'pink2'), labels = c(0, 0.5, 1)) +
   #geom_hline(yintercept = qbinom(c(0.025, 0.975), size = 1000, prob = 0.95) / 1000, lty = 2, colour = 'grey40') 
   geom_hline(yintercept = 0.95, lty = 2, colour = 'grey')
 
@@ -587,7 +587,7 @@ COV_plot_skewed <-ss_COV %>% bind_rows(re_COV) %>% bind_rows(bb_COV) %>%
     ylim(0,1) + 
     scale_shape_manual(values = c(16, 17)) +
     scale_colour_manual('model', 
-                        values = c('steelblue', 'khaki3', 'coral'), 
+                        values = c('steelblue', 'darkred', 'pink2'), 
                         labels = c(0, 0.5, 1))
 )
 
@@ -634,10 +634,9 @@ legend_plot <- ss_RMSE %>%
   scale_shape_manual('', values = c(21, 24)) +
   scale_linetype_manual('', values = c(1, 1), guide = 'none') +
   scale_colour_manual('', 
-                      values = c('steelblue', 'khaki3', 'coral')) + 
+                      values = c('steelblue', 'darkred', 'pink2')) + 
   scale_fill_manual('', 
-                    values = c('steelblue', 'khaki3', 'coral')) +
-  # move geoms outside visible panel
+                    values = c('steelblue', 'darkred', 'pink2')) +
   coord_cartesian(xlim = c(-1, -0.5), ylim = c(-1, -0.5)) +
   theme_void() +
   theme(
@@ -645,7 +644,7 @@ legend_plot <- ss_RMSE %>%
     legend.position = "inside",
     legend.direction = 'vertical',
     legend.title.position = "left",
-    legend.key.spacing = unit(0.5, 'cm'),
+    legend.key.spacing = unit(0.1, 'cm'),
     legend.spacing =  unit(0.5, 'cm'),
     legend.background = element_blank()
   )
@@ -657,30 +656,6 @@ cowplot::plot_grid(cowplot::plot_grid(dist_normal, dist_skewed,
                    align = 'h', 
                    rel_heights = c(2,3,3),
                    labels = c('A', 'B', 'C', 'D', 'E', 'F')), legend_plot, ncol = 2, rel_widths = c(3,1))
+
 ggsave('figs/simulation_study_sum.png', width = 19, height = 15, units = 'cm', dpi = 600)
-
-### ERROR BETA ####
-
-re_RMSE <- results_re %>% 
-  mutate(model = 'GDUM (site random effects)') %>% 
-  group_by(n,par, par_true, beta, model, lambda) %>%
-  summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
-  filter(par == 'e_beta')
-
-bb_RMSE <- results_bb %>% 
-  mutate(model = 'GDUM (Bayesian bootstrapping)') %>% 
-  group_by(n,par, par_true, beta, model, lambda) %>%
-  summarise(RMSE = sqrt(sum((par_recov - par_true)^2))) %>%
-  filter(par == 'e_beta')
-
-RMSE_plot <- re_RMSE %>% bind_rows(bb_RMSE) %>% 
-  ggplot(aes(x = n, y = RMSE, colour = as.factor(par_true))) +
-  geom_path() +
-  geom_jitter(width =1, height = 0) +
-  facet_grid(lambda~model) +
-  theme() +
-  scale_colour_manual('', values = c('steelblue4', 'coral'), labels = paste0('beta = ', c(0,1))) 
-
-
-
-
+ggsave('figs/simulation_study_sum.eps',device = cairo_ps, width = 19, height = 15, units = 'cm', dpi = 600)

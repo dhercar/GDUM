@@ -1,11 +1,21 @@
+# Author: Daniel Hernaandez Carrasco
+# Email: dani.hc97@gmail.com
+# Created: 8/13/2025
+# License: MIT (see LICENSE file for details)
+
 library(tidyverse)
 library(gdmmTMB)
 library(ggplot2)
+library(gdm)
+library(adespatial)
+
+# plotting preferences
 theme_set(theme_bw())
 theme_update(strip.background = element_blank(), 
              text = element_text(size = 8),
              panel.grid = element_blank())
 
+# data
 sp <- gdm::southwest %>% dplyr::select(site, species) %>% 
   group_by(site, species) %>%
   summarise(n = 1) %>%
@@ -19,6 +29,7 @@ env <- gdm::southwest %>% dplyr::select(-c(species)) %>%
 D <- t(combn(nrow(env), 2))
 dist = data.frame(dist = scale(dist(env[,c('bio19')]))[D])
 
+# model with dissimilarity gradients
 m2.d <- gdmm(Y = sp[,-1],
           X = env,
           X_pair = dist,
@@ -32,6 +43,7 @@ m2.d <- gdmm(Y = sp[,-1],
           n_boot = 1000,
           bboot = T)
 
+# model without dissimilarity gradients
 m2.nd <- gdmm(Y = sp[,-1],
              X = env,
              X_pair = dist,
@@ -56,7 +68,7 @@ R2_diss_d <- cor(pred_diss_d$mean, pred_diss_d$obs)^2
 R2_lcbd_d <- cor(pred_lcbd_d$mean, pred_lcbd_d$obs)^2
 
 pred_diss_plot_d <- ggplot(pred_diss_d, aes(x = mean, y = obs)) + 
-  geom_point(col = 'darkred', alpha = 0.3) +
+  geom_point(col = 'darkred', size = 1) +
   geom_abline(slope = 1) +
   coord_equal() +
   theme(aspect.ratio = 1,
@@ -69,7 +81,7 @@ pred_diss_plot_d <- ggplot(pred_diss_d, aes(x = mean, y = obs)) +
   annotate("text", x = 0.1, y = 0.95, label = paste0("R² = ", round(R2_diss_d, 2)), hjust = 0)
 
 pred_lcbd_plot_d <- ggplot(pred_lcbd_d, aes(x = mean, y = obs)) + 
-  geom_point(col = 'darkred', alpha = 0.5) +
+  geom_point(col = 'darkred', size = 1) +
   coord_equal() +
   theme(aspect.ratio = 1,
         plot.title = element_text(hjust = 0.5, face =2)) +
@@ -87,13 +99,13 @@ f_x <- diss_gradient(m2.d, CI_quant = c(0.5, 0.95))
 env_long <- env %>% dplyr::select(bio5, bio6, bio15, bio19) %>% pivot_longer(c(bio5, bio6, bio15, bio19), names_to = 'var') 
 
 fx_plot <- do.call(rbind, f_x) %>% ggplot() +
-  geom_line(aes(x = x, y = f_x)) +
-  geom_ribbon(aes(x = x, ymax = `CI 2.5%`, ymin = `CI 97.5%`), alpha = 0.2) +
-  geom_ribbon(aes(x = x, ymax = `CI 25%`, ymin = `CI 75%`), alpha = 0.3) +
+  geom_ribbon(aes(x = x, ymax = `CI 2.5%`, ymin = `CI 97.5%`), fill = 'grey90') +
+  geom_ribbon(aes(x = x, ymax = `CI 25%`, ymin = `CI 75%`), fill = 'grey80') +
   facet_wrap(~var, scales = 'free_x', ncol = 1, strip.position = 'bottom') +
   theme(strip.placement = 'outside') +
   ylab(expression('f(x)')) +
   xlab('')+
+  geom_line(aes(x = x, y = f_x)) +
   geom_point(data = env_long, aes(x = value, y = -0.2), shape = '|', col = 'darkred')
   
 lambda_samples_d <- m2.d$boot_samples[,colnames(m2.d$boot_samples) == 'lambda']
@@ -113,7 +125,9 @@ lambda_plot_d <- ggplot(lambda_sum_d, aes(x = X50., y = var)) +
   geom_point(colour = 'black', fill = 'white', shape = 21, size = 3, stroke = 1) 
 
 cowplot::plot_grid(fx_plot, lambda_plot_d, cowplot::plot_grid(pred_diss_plot_d, pred_lcbd_plot_d, ncol = 1, align = 'vh', labels = c('C', 'D')), ncol = 3, labels = c('A', 'B'), rel_widths = c(1,1,1))
+
 ggsave('figs/cs_2_plot.png', width = 15, height = 15, units = 'cm', dpi = 600)
+ggsave('figs/cs_2_plot.eps', device = cairo_ps, width = 15, height = 15, units = 'cm', dpi = 600)
 
 
 #### DISSIMILARITY GRADIENTS NOT INCLUDED ####
@@ -179,4 +193,5 @@ cowplot::plot_grid(cowplot::plot_grid(lambda_plot_nd+ xlim(-0.7,0.5),
                                       pred_lcbd_plot_d, 
                                       ncol = 2, align = 'vh', labels = c('E', 'F')), 
                    ncol = 1, rel_widths = c(1,1,1))
+
 ggsave('figs/cs_2_plot_nd.png', width = 11, height = 17, units = 'cm', dpi = 600)
