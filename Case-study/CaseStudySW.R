@@ -62,7 +62,7 @@ pred_diss_d <- data.frame(predict(m2.d))
 pred_diss_d$obs <- m2.nd$Y_diss/m2.d$Y_den
 
 pred_lcbd_d <- data.frame(predict(m2.d, component = 'uniqueness', scale_uniq = T))
-pred_lcbd_d$obs <- adespatial::LCBD.comp(vegdist(sp[,-1]))$LCBD
+pred_lcbd_d$obs <- adespatial::LCBD.comp(vegan::vegdist(sp[,-1]))$LCBD
 
 R2_diss_d <- cor(pred_diss_d$mean, pred_diss_d$obs)^2
 R2_lcbd_d <- cor(pred_lcbd_d$mean, pred_lcbd_d$obs)^2
@@ -113,7 +113,6 @@ colnames(lambda_samples_d) <- names(m2.d$form_W$predictors)
 
 lambda_sum_d <- data.frame(t(apply(lambda_samples_d, 2, function(x) quantile(x, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)))))
 lambda_sum_d$var <- c('bio5', 'bio6', 'bio15','bio19')
-
 lambda_plot_d <- ggplot(lambda_sum_d, aes(x = X50., y = var)) +
   geom_vline(xintercept = 0) +
   ylab('') +
