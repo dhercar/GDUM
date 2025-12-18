@@ -116,15 +116,30 @@ points2_rot$LCBD <-  adespatial::LCBD.comp(as.dist(dist_matrix))$LCBD
   theme(panel.grid = element_blank(), aspect.ratio = 1, legend.position = '') +
   scale_fill_gradientn(colours = c('steelblue4','grey90','darkred')) +
     geom_smooth(colour = 'black', se = T, fill = 'grey90', alpha = 1, method = 'lm', formula = y~poly(x, 2)) + 
-    geom_point(aes(fill = pH), shape = 21, size = 1.5))
+    geom_point(aes(fill = pH), shape = 21, size = 1.5) + 
+    ylab('LCBD (residual)')) 
+
+legend <- ggplot(points2_rot, aes(x = pH, y = pH)) + 
+  theme_void(base_size = 8) + 
+  ylab('LCBD') +
+  geom_point(aes(fill = pH), col = 'transparent') + 
+  scale_fill_gradientn(colors =c('steelblue4', 'grey90', 'darkred')) + 
+  theme(legend.position = c(0.5,0.5),
+        legend.key.width = unit(1, 'cm'),
+        legend.key.height = unit(0.3, 'cm'),
+        legend.direction = 'horizontal',
+        legend.title.position = 'bottom',
+        legend.title = element_text(hjust = 0.5))
+
+cowplot::plot_grid(
+  cowplot::plot_grid(
+    cowplot::plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('A', 'C')), 
+      cowplot:: plot_grid(plot_NMDS2, plot_ushape2, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('B', 'D'))), 
+   legend, ncol = 1, rel_heights = c(0.85,0.15))
 
 
-cowplot::plot_grid(cowplot::plot_grid(plot_NMDS, plot_ushape, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('A', 'C')), 
-                   cowplot:: plot_grid(plot_NMDS2, plot_ushape2, ncol = 1, rel_heights = c(2,3), align = 'v', labels = c('B', 'D')))
-
-
-ggsave('figs/microbial_naive.eps', device = cairo_ps, width = 15, height = 8, units = 'cm', dpi = 1200)
-ggsave('figs/microbial_naive.png', width = 15, height = 8, units = 'cm', dpi = 1200)
+ggsave('figs/microbial_naive.eps', device = cairo_ps, width = 15, height = 10, units = 'cm', dpi = 1200)
+ggsave('figs/microbial_naive.png', width = 15, height = 10, units = 'cm', dpi = 1200)
 
 #### FULL MODEL ####
 m <- gdmm(Y = sp,
@@ -237,7 +252,7 @@ fx_plot <- ggplot(diss_gradients, aes(x = x, y = f_x)) +
     geom_ribbon(aes(ymin = CI.25., ymax = CI.75.,x = value),  fill = 'grey70') +
     geom_line(aes(x = value, y = mean)) +
     facet_wrap(~which, ncol = 2))   # location on y-axis)
-  
+ 
 cowplot::plot_grid(cowplot::plot_grid(
   exp_LCBD_plot +
     geom_point(data = points, size = 2, aes(
