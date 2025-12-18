@@ -11,6 +11,8 @@ library(doParallel)
 library(ggplot2)
 library(tidyverse)
 library(adespatial)
+
+
 n_cores = 2  # specify cores
 
 #plotting preferences
@@ -122,11 +124,11 @@ sim_gdmm_data <- function(n = NULL, # sample size
   return(list(re_model = h_sum, bb_model = bb_sum, ss_model = ss_sum))
 }
 
-
+#### SCENARIOS 1: NORMAL ####
 scenarios <-  expand.grid(n = c(20, 50, 100), 
                           lambda = c(0, 0.5, 1), # combination of effect size (uniqueness)
                           beta = c(0, 1), # combination of effect size (dissimilarity),
-                          m = 1, # number of predictors
+                          m = 2, # number of predictors
                           sim = 1:1000,
                           beta_0 = 0,
                           sd_pair = 0.5,
@@ -659,3 +661,4 @@ cowplot::plot_grid(cowplot::plot_grid(dist_normal, dist_skewed,
 
 ggsave('figs/simulation_study_sum.png', width = 19, height = 15, units = 'cm', dpi = 600)
 ggsave('figs/simulation_study_sum.eps',device = cairo_ps, width = 19, height = 15, units = 'cm', dpi = 600)
+
