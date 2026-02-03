@@ -1,6 +1,6 @@
-# Author: Daniel Hernaandez Carrasco
+# Author: Daniel Hernandez Carrasco
 # Email: dani.hc97@gmail.com
-# Created: 8/13/2025
+# Created: 13/08/2025
 # License: MIT (see LICENSE file for details)
 
 library(tidyverse)
@@ -8,6 +8,7 @@ library(gdmmTMB)
 library(ggplot2)
 library(gdm)
 library(adespatial)
+library(vegan)
 
 # plotting preferences
 theme_set(theme_bw())
@@ -123,7 +124,12 @@ lambda_plot_d <- ggplot(lambda_sum_d, aes(x = X50., y = var)) +
   geom_linerange(aes(xmin = X25., xmax = X75.), linewidth = 1) + 
   geom_point(colour = 'black', fill = 'white', shape = 21, size = 3, stroke = 1) 
 
-cowplot::plot_grid(fx_plot, lambda_plot_d, cowplot::plot_grid(pred_diss_plot_d, pred_lcbd_plot_d, ncol = 1, align = 'vh', labels = c('C', 'D')), ncol = 3, labels = c('A', 'B'), rel_widths = c(1,1,1))
+cowplot::plot_grid(fx_plot, 
+                   lambda_plot_d, 
+                   cowplot::plot_grid(pred_diss_plot_d, 
+                                      pred_lcbd_plot_d,
+                                      ncol = 1, align = 'vh', labels = c('C', 'D')), 
+                   ncol = 3, labels = c('A', 'B'), rel_widths = c(1,1,1))
 
 ggsave('figs/cs_2_plot.png', width = 15, height = 15, units = 'cm', dpi = 600)
 ggsave('figs/cs_2_plot.eps', device = cairo_ps, width = 15, height = 15, units = 'cm', dpi = 600)
